@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: 'DM Sans', sans-serif;
+  }
+}
+
+@layer components {
+  /* Paginação do Laravel + Livewire */
+  nav[role="navigation"] span[aria-current="page"] span {
+    @apply bg-blue-600 text-white border-blue-600 rounded-lg px-3 py-1.5 text-sm font-medium;
+  }
+  nav[role="navigation"] a {
+    @apply border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-colors;
+  }
+  nav[role="navigation"] span[aria-disabled="true"] span {
+    @apply text-slate-300 border-slate-100 border rounded-lg px-3 py-1.5 text-sm cursor-not-allowed;
+  }
+
+  /* Loading indicator do Livewire */
+  [wire\:loading] { opacity: 0.7; }
+}
