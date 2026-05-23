@@ -1,0 +1,86 @@
+services:
+
+  # ─── Nginx — servidor web ─────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: expense-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/var/www/html/public:ro
+      - storage_data:/var/www/html/storage
+    depends_on:
+      - php
+    networks:
+      - expense-network
+    restart: unless-stopped
+
+  # ─── PHP-FPM — aplicação Laravel ─────────────────────
+  php:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: expense-php
+    volumes:
+      - .:/var/www/html
+      - storage_data:/var/www/html/storage
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - expense-network
+    restart: unless-stopped
+
+  # ─── MySQL — banco de dados ───────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: expense-mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-expense_manager}
+      MYSQL_USER: ${DB_USERNAME:-expense_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - expense-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ─── Queue Worker — processa e-mails ─────────────────
+  queue:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: expense-queue
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    volumes:
+      - .:/var/www/html
+      - storage_data:/var/www/html/storage
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - expense-network
+    restart: unless-stopped
+
+# ─── Redes e Volumes ──────────────────────────────────
+networks:
+  expense-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  storage_data:
+    driver: local
