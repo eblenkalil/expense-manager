@@ -1,0 +1,37 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_RESPONSE\" | grep -q '\\.php'; then ./vendor/bin/pint --quiet 2>/dev/null || true; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[$(date '+%H:%M:%S')] Executando: $CLAUDE_TOOL_INPUT\" >> .claude/activity.log"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(php artisan *)",
+      "Bash(composer *)",
+      "Bash(npm *)",
+      "Bash(git *)",
+      "Bash(./vendor/bin/pint*)",
+      "Bash(tail *)",
+      "Bash(cat storage/logs/*)"
+    ]
+  }
+}
