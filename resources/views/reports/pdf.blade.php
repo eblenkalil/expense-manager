@@ -97,7 +97,9 @@
     color: #94a3b8;
     border-bottom: 2px solid #e2e8f0;
   }
-  th.right { text-align: right; }
+  th.right  { text-align: right; }
+  th.center { text-align: center; }
+  td.center { text-align: center; }
   td {
     padding: 10px 12px;
     font-size: 12px;
@@ -222,6 +224,7 @@
         <th>Descrição</th>
         <th>Categoria</th>
         <th class="right">Valor</th>
+        <th class="center">Status</th>
       </tr>
     </thead>
     <tbody>
@@ -231,11 +234,17 @@
           <td>{{ $e->description ?: '—' }}</td>
           <td><span class="category-badge">{{ $e->category?->name ?? '—' }}</span></td>
           <td class="right">R$ {{ number_format($e->value, 2, ',', '.') }}</td>
+          <td class="center">
+            <span class="status-badge {{ $e->status === 'archived' ? 'status-paid' : 'status-submitted' }}">
+              {{ $e->status_label }}
+            </span>
+          </td>
         </tr>
       @endforeach
       <tr class="total-row">
         <td colspan="3">TOTAL GERAL</td>
         <td class="right total-value">R$ {{ number_format($report->total_value, 2, ',', '.') }}</td>
+        <td></td>
       </tr>
     </tbody>
   </table>
