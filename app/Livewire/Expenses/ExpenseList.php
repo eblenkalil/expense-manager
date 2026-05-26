@@ -87,7 +87,7 @@ class ExpenseList extends Component
 
     public function getExpensesProperty()
     {
-        return Expense::with('category')
+        return Expense::with(['category', 'reports'])
             ->where('user_id', auth()->id())
             ->whereIn('status', ['available', 'locked'])
             ->when($this->search, fn ($q) => $q->where('description', 'like', "%{$this->search}%")

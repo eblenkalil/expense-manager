@@ -91,6 +91,12 @@
               <td class="px-4 py-3 font-mono font-medium text-right">R$ {{ number_format($e->value, 2, ',', '.') }}</td>
               <td class="px-4 py-3">
                 <x-status-badge :color="$e->status_color">{{ $e->status_label }}</x-status-badge>
+                @if($e->status === 'locked' && $e->reports->isNotEmpty())
+                  <a href="{{ route('reports.show', $e->reports->first()) }}"
+                     class="block mt-1 text-xs text-slate-400 hover:text-blue-600 font-mono transition-colors duration-150 ease-out">
+                    {{ $e->reports->first()->protocol_number }}
+                  </a>
+                @endif
               </td>
               <td class="px-4 py-3 text-right">
                 @if($e->isAvailable())
