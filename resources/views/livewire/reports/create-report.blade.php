@@ -94,6 +94,12 @@
           @error('title') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
         <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1.5">Chave PIX</label>
+          <input type="text" wire:model.live="pixKey" placeholder="CPF, e-mail, telefone ou chave aleatória"
+                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+          @error('pixKey') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+        </div>
+        <div>
           <label class="block text-sm font-medium text-slate-600 mb-1.5">Observações</label>
           <textarea wire:model="notes" rows="3" placeholder="Observações opcionais..."
                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"></textarea>

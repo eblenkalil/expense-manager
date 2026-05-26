@@ -18,15 +18,22 @@ class ExpenseList extends Component
     use WithFileUploads, WithPagination;
 
     // Filtros
-    public string $search         = '';
+    public string $search = '';
+
     public string $categoryFilter = '';
-    public string $dateFrom       = '';
-    public string $dateTo         = '';
+
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
 
     // Seleção para relatório
-    public array $selectedIds      = [];
-    public bool  $showReportModal  = false;
-    public string $reportTitle     = '';
+    public array $selectedIds = [];
+
+    public bool $showReportModal = false;
+
+    public string $reportTitle = '';
+
+    public string $reportPixKey = '';
 
     // Modal nova despesa
     public bool $showModal = false;
@@ -47,36 +54,49 @@ class ExpenseList extends Component
     public $receipt;
 
     // Modal preview
-    public bool   $showPreview   = false;
-    public string $previewUrl    = '';
-    public string $previewType   = ''; // 'image' | 'pdf'
+    public bool $showPreview = false;
+
+    public string $previewUrl = '';
+
+    public string $previewType = ''; // 'image' | 'pdf'
 
     public function mount(): void
     {
         $this->expense_date = today()->format('Y-m-d');
     }
 
-    public function updatingSearch(): void    { $this->resetPage(); }
-    public function updatingCategoryFilter(): void { $this->resetPage(); }
-    public function updatingDateFrom(): void  { $this->resetPage(); }
-    public function updatingDateTo(): void    { $this->resetPage(); }
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingCategoryFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
 
     public function getExpensesProperty()
     {
         return Expense::with('category')
             ->where('user_id', auth()->id())
             ->whereIn('status', ['available', 'locked'])
-            ->when($this->search, fn($q) =>
-                $q->where('description', 'like', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('description', 'like', "%{$this->search}%")
             )
-            ->when($this->categoryFilter, fn($q) =>
-                $q->where('category_id', $this->categoryFilter)
+            ->when($this->categoryFilter, fn ($q) => $q->where('category_id', $this->categoryFilter)
             )
-            ->when($this->dateFrom, fn($q) =>
-                $q->where('expense_date', '>=', $this->dateFrom)
+            ->when($this->dateFrom, fn ($q) => $q->where('expense_date', '>=', $this->dateFrom)
             )
-            ->when($this->dateTo, fn($q) =>
-                $q->where('expense_date', '<=', $this->dateTo)
+            ->when($this->dateTo, fn ($q) => $q->where('expense_date', '<=', $this->dateTo)
             )
             ->orderBy('expense_date', 'desc')
             ->paginate(15);
@@ -109,12 +129,12 @@ class ExpenseList extends Component
         }
 
         Expense::create([
-            'user_id'               => auth()->id(),
-            'expense_date'          => $this->expense_date,
-            'value'                 => $this->value,
-            'category_id'           => $this->category_id,
-            'description'           => $this->description,
-            'receipt_path'          => $receiptPath,
+            'user_id' => auth()->id(),
+            'expense_date' => $this->expense_date,
+            'value' => $this->value,
+            'category_id' => $this->category_id,
+            'description' => $this->description,
+            'receipt_path' => $receiptPath,
             'receipt_original_name' => $receiptName,
         ]);
 
@@ -144,9 +164,11 @@ class ExpenseList extends Component
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
-        if (! $expense->receipt_path) return;
+        if (! $expense->receipt_path) {
+            return;
+        }
 
-        $this->previewUrl  = $expense->receipt_url;
+        $this->previewUrl = $expense->receipt_url;
         $this->previewType = in_array($expense->receipt_ext, ['jpg', 'jpeg', 'png', 'webp'])
             ? 'image'
             : 'pdf';
@@ -156,13 +178,13 @@ class ExpenseList extends Component
     public function closePreview(): void
     {
         $this->showPreview = false;
-        $this->previewUrl  = '';
+        $this->previewUrl = '';
     }
 
     public function toggleSelect(int $id): void
     {
         if (in_array($id, $this->selectedIds)) {
-            $this->selectedIds = array_values(array_filter($this->selectedIds, fn($v) => $v !== $id));
+            $this->selectedIds = array_values(array_filter($this->selectedIds, fn ($v) => $v !== $id));
         } else {
             $this->selectedIds[] = $id;
         }
@@ -175,7 +197,8 @@ class ExpenseList extends Component
 
     public function openReportModal(): void
     {
-        $this->reportTitle   = '';
+        $this->reportTitle = '';
+        $this->reportPixKey = '';
         $this->showReportModal = true;
         $this->resetValidation('reportTitle');
     }
@@ -191,6 +214,7 @@ class ExpenseList extends Component
 
         if (empty($this->selectedIds)) {
             $this->addError('reportTitle', 'Selecione ao menos uma despesa.');
+
             return;
         }
 
@@ -201,15 +225,17 @@ class ExpenseList extends Component
 
         if ($expenses->count() !== count($this->selectedIds)) {
             $this->addError('reportTitle', 'Algumas despesas selecionadas são inválidas.');
+
             return;
         }
 
         DB::transaction(function () use ($expenses) {
             $report = Report::create([
-                'user_id'         => auth()->id(),
+                'user_id' => auth()->id(),
                 'protocol_number' => ProtocolService::generate(),
-                'title'           => $this->reportTitle,
-                'total_value'     => $expenses->sum('value'),
+                'title' => $this->reportTitle,
+                'pix_key' => $this->reportPixKey ?: null,
+                'total_value' => $expenses->sum('value'),
             ]);
 
             $report->expenses()->attach($expenses->pluck('id'));
@@ -219,7 +245,7 @@ class ExpenseList extends Component
         });
 
         $report = Report::where('user_id', auth()->id())->latest()->first();
-        $this->selectedIds   = [];
+        $this->selectedIds = [];
         $this->showReportModal = false;
 
         session()->flash('success', "Relatório {$report->protocol_number} criado com sucesso!");
@@ -229,7 +255,7 @@ class ExpenseList extends Component
     public function render()
     {
         return view('livewire.expenses.expense-list', [
-            'expenses'   => $this->expenses,
+            'expenses' => $this->expenses,
             'categories' => Category::active()->orderBy('name')->get(),
         ])->layout('layouts.app', ['title' => 'Minhas Despesas']);
     }

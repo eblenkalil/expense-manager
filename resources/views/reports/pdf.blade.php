@@ -151,6 +151,28 @@
     margin-bottom: 6px;
   }
 
+  /* PIX */
+  .pix-section {
+    margin-top: 20px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .pix-section .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #15803d;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .pix-section .value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #166534;
+  }
+
   /* Status */
   .status-badge {
     padding: 3px 10px;
@@ -248,6 +270,13 @@
       </tr>
     </tbody>
   </table>
+
+  @if($report->pix_key)
+    <div class="pix-section">
+      <div class="label">Dados para Pagamento</div>
+      <div class="value">Chave PIX: {{ $report->pix_key }}</div>
+    </div>
+  @endif
 
   @if($report->notes)
     <div class="notes">

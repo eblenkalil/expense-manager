@@ -2,25 +2,25 @@
 
 namespace App\Livewire\Reports;
 
-use App\Mail\ReportSubmittedMail;
 use App\Models\Expense;
 use App\Models\Report;
-use App\Models\User;
 use App\Services\ProtocolService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class CreateReport extends Component
 {
-    public array  $selectedIds = [];
+    public array $selectedIds = [];
 
     #[Validate('required|string|max:255')]
     public string $title = '';
 
     #[Validate('nullable|string|max:1000')]
     public string $notes = '';
+
+    #[Validate('nullable|string|max:255')]
+    public string $pixKey = '';
 
     public function getAvailableExpensesProperty()
     {
@@ -42,7 +42,7 @@ class CreateReport extends Component
     {
         if (in_array($id, $this->selectedIds)) {
             $this->selectedIds = array_values(array_filter(
-                $this->selectedIds, fn($v) => $v !== $id
+                $this->selectedIds, fn ($v) => $v !== $id
             ));
         } else {
             $this->selectedIds[] = $id;
@@ -61,6 +61,7 @@ class CreateReport extends Component
 
         if (empty($this->selectedIds)) {
             $this->addError('selectedIds', 'Selecione ao menos uma despesa.');
+
             return;
         }
 
@@ -71,6 +72,7 @@ class CreateReport extends Component
 
         if ($expenses->count() !== count($this->selectedIds)) {
             $this->addError('selectedIds', 'Algumas despesas são inválidas.');
+
             return;
         }
 
@@ -78,11 +80,12 @@ class CreateReport extends Component
             $protocol = ProtocolService::generate();
 
             $report = Report::create([
-                'user_id'         => auth()->id(),
+                'user_id' => auth()->id(),
                 'protocol_number' => $protocol,
-                'title'           => $this->title,
-                'notes'           => $this->notes,
-                'total_value'     => $expenses->sum('value'),
+                'title' => $this->title,
+                'notes' => $this->notes,
+                'pix_key' => $this->pixKey ?: null,
+                'total_value' => $expenses->sum('value'),
             ]);
 
             $report->expenses()->attach($expenses->pluck('id'));
@@ -100,7 +103,7 @@ class CreateReport extends Component
     {
         return view('livewire.reports.create-report', [
             'availableExpenses' => $this->availableExpenses,
-            'total'             => $this->total,
+            'total' => $this->total,
         ])->layout('layouts.app', ['title' => 'Novo Relatório']);
     }
 }
