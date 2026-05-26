@@ -12,6 +12,10 @@ class JobList extends Component
 
     public ?int $editingId = null;
 
+    public bool $showLinkModal = false;
+
+    public string $linkUrl = '';
+
     #[Validate('required|string|max:255')]
     public string $title = '';
 
@@ -77,6 +81,19 @@ class JobList extends Component
     {
         $job = Job::findOrFail($jobId);
         $job->update(['status' => $job->status === 'open' ? 'closed' : 'open']);
+    }
+
+    public function showLink(int $jobId): void
+    {
+        $job = Job::findOrFail($jobId);
+        $this->linkUrl = route('jobs.apply', $job->public_token);
+        $this->showLinkModal = true;
+    }
+
+    public function closeLinkModal(): void
+    {
+        $this->showLinkModal = false;
+        $this->linkUrl = '';
     }
 
     public function render()

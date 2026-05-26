@@ -83,37 +83,10 @@
                           class="text-xs border {{ $job->status === 'open' ? 'border-amber-200 hover:border-amber-400 text-amber-600 hover:text-amber-700' : 'border-emerald-200 hover:border-emerald-400 text-emerald-600 hover:text-emerald-700' }} rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
                     {{ $job->status === 'open' ? 'Fechar' : 'Reabrir' }}
                   </button>
-                  <div x-data="{ open: false, copied: false, url: '{{ route('jobs.apply', $job->public_token) }}' }" class="relative">
-                    <button @click="open = !open"
-                            class="text-xs border border-slate-200 hover:border-blue-300 text-slate-500 hover:text-blue-600 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
-                      Link Público
-                    </button>
-                    <div x-show="open" x-cloak @click.outside="open = false"
-                         class="absolute right-0 top-8 z-50 w-80 bg-white border border-slate-200 rounded-xl shadow-xl p-4">
-                      <p class="text-xs font-semibold text-slate-600 mb-2">Link de candidatura</p>
-                      <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-3">
-                        <span class="text-xs text-slate-600 break-all flex-1 font-mono" x-text="url"></span>
-                      </div>
-                      <div class="flex gap-2">
-                        <button @click="
-                            try { navigator.clipboard.writeText(url); } catch(e) {
-                              let t = document.createElement('textarea');
-                              t.value = url; document.body.appendChild(t); t.select();
-                              document.execCommand('copy'); document.body.removeChild(t);
-                            }
-                            copied = true; setTimeout(() => { copied = false; open = false; }, 1500);
-                          "
-                          class="flex-1 text-xs font-medium py-2 rounded-lg transition-colors duration-150 ease-out"
-                          :class="copied ? 'bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'"
-                          x-text="copied ? '✓ Copiado!' : 'Copiar link'">
-                        </button>
-                        <a :href="url" target="_blank"
-                           class="text-xs font-medium px-3 py-2 border border-slate-200 hover:border-blue-300 text-slate-600 hover:text-blue-600 rounded-lg transition-colors duration-150 ease-out">
-                          Abrir
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+                  <button wire:click="showLink({{ $job->id }})"
+                          class="text-xs border border-slate-200 hover:border-blue-300 text-slate-500 hover:text-blue-600 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
+                    Link Público
+                  </button>
                 </div>
               </td>
             </tr>
@@ -161,6 +134,48 @@
             <span wire:loading.remove wire:target="save">{{ $editingId ? 'Salvar' : 'Criar Vaga' }}</span>
             <span wire:loading wire:target="save">Salvando...</span>
           </button>
+        </div>
+      </div>
+    </div>
+  @endif
+
+  {{-- Modal link público --}}
+  @if($showLinkModal)
+    <div class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-6"
+         wire:click.self="closeLinkModal">
+      <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+        <div class="px-6 pt-6 pb-4 border-b border-slate-100">
+          <h3 class="text-lg font-semibold">Link de Candidatura</h3>
+          <p class="text-sm text-slate-400 mt-1">Compartilhe este link para receber candidaturas</p>
+        </div>
+        <div class="p-6">
+          <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 mb-4 break-all font-mono text-sm text-slate-700 select-all">
+            {{ $linkUrl }}
+          </div>
+          <div class="flex gap-3"
+               x-data="{ copied: false }">
+            <button
+              @click="
+                try { navigator.clipboard.writeText('{{ $linkUrl }}'); } catch(e) {
+                  let t = document.createElement('textarea');
+                  t.value = '{{ $linkUrl }}'; document.body.appendChild(t); t.select();
+                  document.execCommand('copy'); document.body.removeChild(t);
+                }
+                copied = true; setTimeout(() => copied = false, 2000);
+              "
+              :class="copied ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'"
+              class="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-150 ease-out"
+              x-text="copied ? '✓ Copiado!' : 'Copiar link'">
+            </button>
+            <a href="{{ $linkUrl }}" target="_blank"
+               class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600 rounded-lg transition-colors duration-150 ease-out">
+              Abrir
+            </a>
+            <button wire:click="closeLinkModal"
+                    class="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">
+              Fechar
+            </button>
+          </div>
         </div>
       </div>
     </div>
