@@ -9,13 +9,14 @@ class Report extends Model
     protected $fillable = [
         'user_id', 'protocol_number', 'title', 'total_value',
         'notes', 'pix_key', 'status', 'payment_receipt_path', 'payment_receipt_name',
-        'submitted_at', 'paid_at',
+        'submitted_at', 'paid_at', 'rejection_reason', 'rejected_at',
     ];
 
     protected $casts = [
         'total_value' => 'decimal:2',
         'submitted_at' => 'datetime',
         'paid_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     public function user()
@@ -36,6 +37,7 @@ class Report extends Model
             'draft' => 'Rascunho',
             'submitted' => 'Pendente Pagamento',
             'paid' => 'Pago e Concluído',
+            'rejected' => 'Reprovado',
             default => $this->status,
         };
     }
@@ -46,6 +48,7 @@ class Report extends Model
             'draft' => 'gray',
             'submitted' => 'amber',
             'paid' => 'green',
+            'rejected' => 'red',
             default => 'gray',
         };
     }

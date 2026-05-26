@@ -143,6 +143,17 @@
         </button>
       @endif
 
+      {{-- Rejection reason --}}
+      @if($report->status === 'rejected' && $report->rejection_reason)
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+          <p class="text-sm font-semibold text-red-800 mb-2">Relatório reprovado</p>
+          <p class="text-sm text-red-700">{{ $report->rejection_reason }}</p>
+          @if($report->rejected_at)
+            <p class="text-xs text-red-400 mt-2">{{ $report->rejected_at->format('d/m/Y H:i') }}</p>
+          @endif
+        </div>
+      @endif
+
       {{-- Payment receipt --}}
       @if($report->payment_receipt_path)
         <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
