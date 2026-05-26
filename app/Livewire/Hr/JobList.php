@@ -3,6 +3,7 @@
 namespace App\Livewire\Hr;
 
 use App\Models\Job;
+use App\Models\Position;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -16,11 +17,13 @@ class JobList extends Component
 
     public string $linkUrl = '';
 
+    public string $positionFilter = '';
+
     #[Validate('required|string|max:255')]
     public string $title = '';
 
-    #[Validate('required|string|max:255')]
-    public string $position = '';
+    #[Validate('required|integer|exists:positions,id')]
+    public ?int $position_id = null;
 
     #[Validate('nullable|string|max:5000')]
     public string $description = '';
@@ -29,7 +32,7 @@ class JobList extends Component
     {
         $this->editingId = null;
         $this->title = '';
-        $this->position = '';
+        $this->position_id = null;
         $this->description = '';
         $this->resetValidation();
         $this->showModal = true;
@@ -40,7 +43,7 @@ class JobList extends Component
         $job = Job::findOrFail($jobId);
         $this->editingId = $jobId;
         $this->title = $job->title;
-        $this->position = $job->position;
+        $this->position_id = $job->position_id;
         $this->description = $job->description ?? '';
         $this->resetValidation();
         $this->showModal = true;
@@ -59,14 +62,14 @@ class JobList extends Component
             $job = Job::findOrFail($this->editingId);
             $job->update([
                 'title' => $this->title,
-                'position' => $this->position,
+                'position_id' => $this->position_id,
                 'description' => $this->description ?: null,
             ]);
             $message = "Vaga \"{$job->title}\" atualizada.";
         } else {
             $job = Job::create([
                 'title' => $this->title,
-                'position' => $this->position,
+                'position_id' => $this->position_id,
                 'description' => $this->description ?: null,
                 'created_by' => auth()->id(),
             ]);
@@ -98,14 +101,21 @@ class JobList extends Component
 
     public function render()
     {
-        return view('livewire.hr.job-list', [
-            'jobs' => Job::withCount([
+        $jobs = Job::with('position')
+            ->withCount([
                 'candidates',
                 'candidates as pending_count' => fn ($q) => $q->where('status', 'pending'),
-                'candidates as interview_count' => fn ($q) => $q->where('status', 'interview'),
+                'candidates as interview_count' => fn ($q) => $q->whereIn('status', ['interview', 'second_interview']),
                 'candidates as hired_count' => fn ($q) => $q->where('status', 'hired'),
                 'candidates as discarded_count' => fn ($q) => $q->where('status', 'discarded'),
-            ])->latest()->get(),
+            ])
+            ->when($this->positionFilter, fn ($q) => $q->where('position_id', $this->positionFilter))
+            ->latest()
+            ->get();
+
+        return view('livewire.hr.job-list', [
+            'jobs' => $jobs,
+            'positions' => Position::active()->orderBy('name')->get(),
         ])->layout('layouts.app', ['title' => 'Vagas']);
     }
 }

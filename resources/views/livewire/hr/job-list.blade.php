@@ -13,6 +13,25 @@
     </button>
   </div>
 
+  {{-- Filtro por cargo --}}
+  @if($positions->isNotEmpty())
+    <div class="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex flex-wrap gap-3 items-center">
+      <select wire:model.live="positionFilter"
+              class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+        <option value="">Todos os cargos</option>
+        @foreach($positions as $pos)
+          <option value="{{ $pos->id }}">{{ $pos->name }}</option>
+        @endforeach
+      </select>
+      @if($positionFilter)
+        <button wire:click="$set('positionFilter', '')"
+                class="text-sm text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg px-3 py-2 transition-colors duration-150 ease-out">
+          Limpar filtro
+        </button>
+      @endif
+    </div>
+  @endif
+
   <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
     @if($jobs->isEmpty())
       <div class="text-center py-16 text-slate-400">
@@ -32,19 +51,21 @@
             <th class="px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">Entrevista</th>
             <th class="px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">Contratado</th>
             <th class="px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">Descartado</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Aberta há</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Status</th>
             <th class="px-4 py-3"></th>
           </tr>
         </thead>
         <tbody>
           @foreach($jobs as $job)
+            @php $daysOpen = $job->created_at->diffInDays(now()); @endphp
             <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-150 ease-out">
               <td class="px-4 py-3">
                 <a href="{{ route('hr.candidates.index', $job) }}"
                    class="font-semibold text-slate-900 hover:text-blue-600 transition-colors">
                   {{ $job->title }}
                 </a>
-                <p class="text-xs text-slate-400 mt-0.5">{{ $job->position }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">{{ $job->position?->name ?? '—' }}</p>
               </td>
               <td class="px-4 py-3 text-center">
                 <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold">
@@ -65,6 +86,12 @@
                 <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-500 text-xs font-semibold">
                   {{ $job->discarded_count ?? 0 }}
                 </span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="text-xs text-slate-500">{{ $job->created_at->format('d/m/Y') }}</span>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  {{ $daysOpen === 0 ? 'hoje' : $daysOpen . ' ' . ($daysOpen === 1 ? 'dia' : 'dias') }}
+                </p>
               </td>
               <td class="px-4 py-3">
                 <x-status-badge :color="$job->status_color">{{ $job->status_label }}</x-status-badge>
@@ -113,9 +140,14 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1.5">Cargo *</label>
-            <input type="text" wire:model="position" placeholder="Ex: Pleno, Sênior, Estágio"
-                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-            @error('position') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+            <select wire:model="position_id"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+              <option value="">Selecione um cargo</option>
+              @foreach($positions as $pos)
+                <option value="{{ $pos->id }}">{{ $pos->name }}</option>
+              @endforeach
+            </select>
+            @error('position_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1.5">Descrição</label>
