@@ -4,6 +4,9 @@ namespace App\Livewire\Expenses;
 
 use App\Models\Category;
 use App\Models\Expense;
+use App\Models\Report;
+use App\Services\ProtocolService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -15,10 +18,15 @@ class ExpenseList extends Component
     use WithFileUploads, WithPagination;
 
     // Filtros
-    public string $search      = '';
+    public string $search         = '';
     public string $categoryFilter = '';
-    public string $dateFrom    = '';
-    public string $dateTo      = '';
+    public string $dateFrom       = '';
+    public string $dateTo         = '';
+
+    // Seleção para relatório
+    public array $selectedIds      = [];
+    public bool  $showReportModal  = false;
+    public string $reportTitle     = '';
 
     // Modal nova despesa
     public bool $showModal = false;
@@ -149,6 +157,73 @@ class ExpenseList extends Component
     {
         $this->showPreview = false;
         $this->previewUrl  = '';
+    }
+
+    public function toggleSelect(int $id): void
+    {
+        if (in_array($id, $this->selectedIds)) {
+            $this->selectedIds = array_values(array_filter($this->selectedIds, fn($v) => $v !== $id));
+        } else {
+            $this->selectedIds[] = $id;
+        }
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selectedIds = [];
+    }
+
+    public function openReportModal(): void
+    {
+        $this->reportTitle   = '';
+        $this->showReportModal = true;
+        $this->resetValidation('reportTitle');
+    }
+
+    public function closeReportModal(): void
+    {
+        $this->showReportModal = false;
+    }
+
+    public function createReport(): void
+    {
+        $this->validateOnly('reportTitle', ['reportTitle' => 'required|string|max:255']);
+
+        if (empty($this->selectedIds)) {
+            $this->addError('reportTitle', 'Selecione ao menos uma despesa.');
+            return;
+        }
+
+        $expenses = Expense::whereIn('id', $this->selectedIds)
+            ->where('user_id', auth()->id())
+            ->where('status', 'available')
+            ->get();
+
+        if ($expenses->count() !== count($this->selectedIds)) {
+            $this->addError('reportTitle', 'Algumas despesas selecionadas são inválidas.');
+            return;
+        }
+
+        DB::transaction(function () use ($expenses) {
+            $report = Report::create([
+                'user_id'         => auth()->id(),
+                'protocol_number' => ProtocolService::generate(),
+                'title'           => $this->reportTitle,
+                'total_value'     => $expenses->sum('value'),
+            ]);
+
+            $report->expenses()->attach($expenses->pluck('id'));
+
+            Expense::whereIn('id', $expenses->pluck('id'))
+                ->update(['status' => 'locked']);
+        });
+
+        $report = Report::where('user_id', auth()->id())->latest()->first();
+        $this->selectedIds   = [];
+        $this->showReportModal = false;
+
+        session()->flash('success', "Relatório {$report->protocol_number} criado com sucesso!");
+        $this->redirect(route('reports.show', $report));
     }
 
     public function render()

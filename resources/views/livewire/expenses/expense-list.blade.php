@@ -6,7 +6,7 @@
       <p class="text-slate-400 mt-1 text-sm">Gerencie seus comprovantes</p>
     </div>
     <button wire:click="openModal"
-            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-150 ease-out">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
       </svg>
@@ -48,6 +48,7 @@
       <table class="w-full text-sm">
         <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
+            <th class="px-4 py-3 w-8"></th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Data</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Descrição</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Categoria</th>
@@ -59,7 +60,15 @@
         </thead>
         <tbody>
           @foreach($expenses as $e)
-            <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+            <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors {{ in_array($e->id, $selectedIds) ? 'bg-blue-50' : '' }}">
+              <td class="px-4 py-3">
+                @if($e->isAvailable())
+                  <input type="checkbox"
+                         wire:click="toggleSelect({{ $e->id }})"
+                         @checked(in_array($e->id, $selectedIds))
+                         class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                @endif
+              </td>
               <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ $e->expense_date->format('d/m/Y') }}</td>
               <td class="px-4 py-3 font-medium max-w-xs truncate">{{ $e->description ?: '—' }}</td>
               <td class="px-4 py-3">
@@ -101,6 +110,76 @@
       </div>
     @endif
   </div>
+
+  {{-- Barra de ação flutuante (seleção) --}}
+  @if(count($selectedIds) > 0)
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 bg-slate-900 text-white rounded-2xl px-5 py-3.5 shadow-2xl border border-slate-700 transition-all duration-150 ease-out">
+      <span class="text-sm font-medium">
+        {{ count($selectedIds) }} {{ count($selectedIds) === 1 ? 'despesa selecionada' : 'despesas selecionadas' }}
+      </span>
+      <div class="w-px h-5 bg-slate-600"></div>
+      <button wire:click="openReportModal"
+              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-1.5 rounded-lg transition-colors duration-150 ease-out">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Gerar Relatório
+      </button>
+      <button wire:click="clearSelection"
+              class="text-slate-400 hover:text-white transition-colors duration-150 ease-out p-1 rounded-lg hover:bg-slate-800">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  @endif
+
+  {{-- Modal criação de relatório --}}
+  @if($showReportModal)
+    <div class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-6"
+         wire:click.self="closeReportModal">
+      <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
+        <div class="px-6 pt-6 pb-4 border-b border-slate-100">
+          <h3 class="text-lg font-semibold">Novo Relatório</h3>
+          <p class="text-sm text-slate-400 mt-1">
+            {{ count($selectedIds) }} {{ count($selectedIds) === 1 ? 'despesa selecionada' : 'despesas selecionadas' }}
+          </p>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1.5">Título do relatório *</label>
+            <input type="text" wire:model="reportTitle"
+                   placeholder="Ex: Viagem São Paulo — Mai/2025"
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+            @error('reportTitle') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+          </div>
+
+          {{-- Resumo das despesas --}}
+          <div class="bg-slate-50 rounded-lg p-4 space-y-2 max-h-48 overflow-y-auto">
+            @foreach($expenses as $e)
+              @if(in_array($e->id, $selectedIds))
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-slate-700 truncate flex-1 mr-3">{{ $e->description ?: '—' }}</span>
+                  <span class="font-mono font-medium text-slate-900 shrink-0">R$ {{ number_format($e->value, 2, ',', '.') }}</span>
+                </div>
+              @endif
+            @endforeach
+          </div>
+        </div>
+        <div class="px-6 pb-6 flex gap-3 justify-end">
+          <button wire:click="closeReportModal"
+                  class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+            Cancelar
+          </button>
+          <button wire:click="createReport" wire:loading.attr="disabled" wire:target="createReport"
+                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70">
+            <span wire:loading.remove wire:target="createReport">Criar Relatório</span>
+            <span wire:loading wire:target="createReport">Criando...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  @endif
 
   {{-- Modal nova despesa --}}
   @if($showModal)
@@ -175,25 +254,33 @@
     </div>
   @endif
 
-  {{-- Modal preview recibo --}}
+  {{-- Slide-over preview recibo --}}
   @if($showPreview)
-    <div class="fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-6"
-         wire:click.self="closePreview">
-      <div class="bg-white rounded-2xl overflow-hidden shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <h3 class="font-semibold">Recibo</h3>
-          <button wire:click="closePreview" class="text-slate-400 hover:text-slate-700">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-        <div class="flex-1 overflow-auto p-4">
-          @if($previewType === 'image')
-            <img src="{{ $previewUrl }}" alt="Recibo" class="max-w-full mx-auto rounded-lg">
-          @else
-            <iframe src="{{ $previewUrl }}" class="w-full h-[70vh] rounded-lg border border-slate-200"></iframe>
-          @endif
+    <div class="fixed inset-0 z-50 overflow-hidden">
+      <div class="absolute inset-0 bg-slate-900/40 transition-opacity duration-150 ease-out"
+           wire:click="closePreview"></div>
+      <div class="absolute inset-y-0 right-0 flex max-w-full pl-10">
+        <div class="relative w-screen max-w-xl">
+          <div class="flex h-full flex-col bg-white shadow-xl rounded-l-xl border-l border-slate-200 overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h3 class="text-sm font-semibold text-slate-900">Visualizar Recibo</h3>
+              <button wire:click="closePreview"
+                      class="rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors duration-150 ease-out">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+            <div class="flex-1 overflow-auto p-4 bg-slate-50">
+              @if($previewType === 'image')
+                <img src="{{ $previewUrl }}" alt="Recibo"
+                     class="w-full rounded-xl border border-slate-200 shadow-sm object-contain">
+              @else
+                <iframe src="{{ $previewUrl }}"
+                        class="w-full h-full min-h-[calc(100vh-120px)] rounded-xl border border-slate-200"></iframe>
+              @endif
+            </div>
+          </div>
         </div>
       </div>
     </div>
