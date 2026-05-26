@@ -32,9 +32,16 @@ A chave PIX é a informação de pagamento principal e deve estar visível no PD
 
 ## 4. Botão de confirmar relatório fica desabilitado indevidamente
 
-Na criação do relatório, o botão de confirmação permanece desabilitado mesmo após as despesas serem selecionadas.
-O usuário precisa desselecionar e selecionar novamente para o botão ser habilitado.
-Investigar o estado reativo do componente Livewire e corrigir a lógica de habilitação do botão para que reflita corretamente a seleção atual sem precisar de interação adicional.
+Localizar o componente Livewire responsável pela criação do relatório (provavelmente em app/Livewire/Reports/ ou similar).
+O botão de confirmação do modal permanece desabilitado mesmo após o usuário selecionar despesas.
+O usuário precisa desselecionar e selecionar novamente para o botão ser habilitado, o que indica falha na reatividade.
+
+Passos para corrigir:
+1. Identificar o array ou propriedade Livewire que armazena as despesas selecionadas (ex: $selectedExpenses)
+2. Verificar se o botão usa :disabled ou wire:loading baseado nessa propriedade
+3. Garantir que a propriedade seja atualizada reativamente via updated() hook ou computed property
+4. Se usar @entangle ou Alpine.js local, verificar se o estado Alpine está sincronizado com o Livewire
+5. Testar selecionando despesas sem nenhuma interação adicional — o botão deve habilitar imediatamente
 
 ---
 
@@ -51,7 +58,7 @@ O nome do arquivo deve seguir o padrão: `anexos-{protocol_number}.zip`.
 
 Atualmente, despesas com status "locked" (vinculadas a um relatório) somem completamente da listagem "Minhas Despesas".
 O comportamento correto é:
-- Despesas com status "available": aparecem normalmente na listagem com opção de editar e selecionar
+- Despesas com status "available": aparecem normalmente com opção de editar e selecionar
 - Despesas com status "locked": aparecem na listagem com badge indicando o relatório ao qual estão vinculadas, mas sem possibilidade de edição ou nova seleção
 - Despesas com status "archived": não aparecem na listagem principal (já reembolsadas)
 Ajustar o filtro da query e o badge de status na listagem.
@@ -67,28 +74,53 @@ Usar translatedFormat com Carbon::setLocale('pt_BR') para formatar corretamente.
 
 ---
 
-## 8. Painel admin/financeiro — gestão de relatórios pendentes
+## 8a. Painel admin — listagem de relatórios pendentes de pagamento
 
-No perfil admin, criar tela de gestão de relatórios submetidos para pagamento:
-- Listagem de todos os relatórios com status "submitted" de todos os colaboradores
-- Exibir: colaborador, protocolo, valor total, data de submissão
-- Botão de ação "Pagar":
-  - Abre modal para anexar comprovante de pagamento (upload de arquivo)
-  - Ao confirmar, muda status do relatório para "paid" e registra o comprovante
-- Botão de ação "Reprovar":
-  - Abre modal para informar o motivo da reprovação (campo de texto obrigatório)
-  - Ao confirmar, muda status do relatório para "rejected" e notifica o colaborador
-- O comprovante de pagamento deve ser visualizável pelo colaborador na tela do relatório
+Criar tela acessível apenas para usuários com perfil admin, em rota como /admin/reports.
+Listar todos os relatórios com status "submitted" de todos os colaboradores.
+Colunas da listagem: colaborador (nome), protocolo, valor total, data de submissão, ações.
+Seguir UI_STYLE_GUIDE.md para estilo da tabela e badges.
+Adicionar link para esta tela no menu de navegação apenas para admins.
+
+---
+
+## 8b. Painel admin — ação de pagar relatório
+
+Na listagem da tarefa 8a, adicionar botão "Pagar" em cada linha.
+Ao clicar, abrir modal com:
+- Resumo do relatório (colaborador, protocolo, valor)
+- Campo de upload obrigatório para anexar comprovante de pagamento
+- Botão de confirmar pagamento
+Ao confirmar:
+- Salvar o comprovante no storage (ex: storage/app/private/comprovantes/{id}.pdf)
+- Atualizar status do relatório para "paid"
+- Registrar o path do comprovante no modelo Report (adicionar coluna payment_receipt_path via migration)
+O comprovante deve ser visualizável pelo colaborador na tela de detalhe do seu relatório.
+
+---
+
+## 8c. Painel admin — ação de reprovar relatório
+
+Na listagem da tarefa 8a, adicionar botão "Reprovar" em cada linha.
+Ao clicar, abrir modal com:
+- Resumo do relatório (colaborador, protocolo, valor)
+- Campo de texto obrigatório para informar o motivo da reprovação
+- Botão de confirmar reprovação
+Ao confirmar:
+- Atualizar status do relatório para "rejected"
+- Salvar o motivo no modelo Report (adicionar coluna rejection_reason via migration se não existir)
+- Mudar status das despesas vinculadas de "locked" de volta para "available"
+O motivo da reprovação deve ser exibido para o colaborador na tela de detalhe do relatório.
 
 ---
 
 ## 9. Cadastro de usuários e perfis
 
 Implementar gerenciamento de usuários e permissões:
-- Tela de listagem de usuários (apenas para administradores)
+- Tela de listagem de usuários acessível apenas para administradores
 - Formulário de criação e edição de usuário (nome, email, senha, perfil)
 - Perfis disponíveis:
-  - admin: acesso total ao sistema, vê dados de todos os usuários
+  - admin: acesso total ao sistema, vê dados de todos os usuários e relatórios
   - collaborator: cadastra despesas e gera relatórios próprios, vê apenas seus próprios dados
 - Controle de acesso por perfil em todas as rotas e componentes Livewire
 - Proteção de rotas administrativas via middleware ou policy
