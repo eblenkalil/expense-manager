@@ -29,6 +29,10 @@ class CandidateDetail extends Component
 
     public string $ratingComment = '';
 
+    public string $interviewDate = '';
+
+    public string $interviewType = '';
+
     public function mount(Candidate $candidate): void
     {
         $this->candidate = $candidate->load(['job', 'events.user']);
@@ -40,6 +44,8 @@ class CandidateDetail extends Component
         $this->statusReason = '';
         $this->ratingValue = 0;
         $this->ratingComment = '';
+        $this->interviewDate = '';
+        $this->interviewType = '';
         $this->showStatusModal = true;
         $this->resetValidation();
     }
@@ -61,7 +67,7 @@ class CandidateDetail extends Component
 
     public function confirmStatusChange(): void
     {
-        $rules = ['newStatus' => 'required|in:pending,interview,hired,discarded'];
+        $rules = ['newStatus' => 'required|in:pending,interview,second_interview,hired,discarded'];
 
         if (in_array($this->newStatus, ['hired', 'discarded'])) {
             $rules['statusReason'] = 'required|string|min:3|max:1000';
@@ -69,7 +75,9 @@ class CandidateDetail extends Component
             $rules['statusReason'] = 'nullable|string|max:1000';
         }
 
-        if ($this->newStatus === 'interview') {
+        if (in_array($this->newStatus, ['interview', 'second_interview'])) {
+            $rules['interviewDate'] = 'nullable|string|max:50';
+            $rules['interviewType'] = 'nullable|in:presencial,online,telefone';
             $rules['ratingValue'] = 'nullable|integer|between:0,5';
             $rules['ratingComment'] = 'nullable|string|max:1000';
         }
@@ -80,9 +88,30 @@ class CandidateDetail extends Component
 
         $this->candidate->update(['status' => $this->newStatus]);
 
-        $content = "Status alterado de \"{$this->candidate->getOriginal('status')}\" para \"{$this->newStatus}\"";
+        $statusLabels = [
+            'pending' => 'Aguardando',
+            'interview' => '1ª Entrevista',
+            'second_interview' => '2ª Entrevista',
+            'hired' => 'Contratado',
+            'discarded' => 'Descartado',
+        ];
+
+        $prevLabel = $statusLabels[$previousStatus] ?? $previousStatus;
+        $newLabel = $statusLabels[$this->newStatus] ?? $this->newStatus;
+        $content = "Status alterado de \"{$prevLabel}\" para \"{$newLabel}\"";
+
+        if (in_array($this->newStatus, ['interview', 'second_interview'])) {
+            if ($this->interviewDate) {
+                $content .= ". Data: {$this->interviewDate}";
+            }
+            if ($this->interviewType) {
+                $typeLabels = ['presencial' => 'Presencial', 'online' => 'Online', 'telefone' => 'Telefone'];
+                $content .= '. Modalidade: '.($typeLabels[$this->interviewType] ?? $this->interviewType);
+            }
+        }
+
         if ($this->statusReason) {
-            $content .= ". Motivo: {$this->statusReason}";
+            $content .= ". Observação: {$this->statusReason}";
         }
 
         CandidateEvent::create([
@@ -94,7 +123,7 @@ class CandidateDetail extends Component
             'new_status' => $this->newStatus,
         ]);
 
-        if ($this->newStatus === 'interview' && $this->ratingValue > 0) {
+        if (in_array($this->newStatus, ['interview', 'second_interview']) && $this->ratingValue > 0) {
             $ratingContent = "Avaliação: {$this->ratingValue}/5";
             if ($this->ratingComment) {
                 $ratingContent .= " — {$this->ratingComment}";

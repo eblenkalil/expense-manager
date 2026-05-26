@@ -10,7 +10,7 @@ class Job extends Model
     protected $table = 'job_postings';
 
     protected $fillable = [
-        'title', 'position', 'description', 'status', 'public_token', 'created_by',
+        'title', 'position_id', 'description', 'status', 'public_token', 'created_by',
     ];
 
     protected static function booted(): void
@@ -25,6 +25,11 @@ class Job extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function position()
+    {
+        return $this->belongsTo(Position::class);
     }
 
     public function candidates()

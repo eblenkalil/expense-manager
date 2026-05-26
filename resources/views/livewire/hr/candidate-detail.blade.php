@@ -52,6 +52,12 @@
               </a>
             </div>
           @endif
+          @if($candidate->cpf)
+            <div class="flex gap-2">
+              <span class="text-slate-400 w-24 flex-shrink-0">CPF</span>
+              <span class="text-slate-700 font-mono text-xs">{{ $candidate->cpf }}</span>
+            </div>
+          @endif
           @if($candidate->salary_expectation)
             <div class="flex gap-2">
               <span class="text-slate-400 w-24 flex-shrink-0">Pretensão</span>
@@ -74,10 +80,11 @@
         <h3 class="font-semibold text-slate-900 mb-3 text-sm">Mover para</h3>
         <div class="space-y-2">
           @foreach([
-            'pending'   => ['Aguardando',        'border-amber-200 text-amber-700 hover:border-amber-400 hover:bg-amber-50',   'amber'],
-            'interview' => ['Mover p/ Entrevista','border-blue-200 text-blue-700 hover:border-blue-400 hover:bg-blue-50',     'blue'],
-            'hired'     => ['Contratar',          'border-emerald-200 text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50', 'emerald'],
-            'discarded' => ['Descartar',          'border-slate-200 text-slate-500 hover:border-slate-400 hover:bg-slate-50',  'slate'],
+            'pending'          => ['Aguardando',           'border-amber-200 text-amber-700 hover:border-amber-400 hover:bg-amber-50',     'amber'],
+            'interview'        => ['1ª Entrevista',        'border-blue-200 text-blue-700 hover:border-blue-400 hover:bg-blue-50',         'blue'],
+            'second_interview' => ['2ª Entrevista',        'border-purple-200 text-purple-700 hover:border-purple-400 hover:bg-purple-50', 'purple'],
+            'hired'            => ['Contratar',            'border-emerald-200 text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50', 'emerald'],
+            'discarded'        => ['Descartar',            'border-slate-200 text-slate-500 hover:border-slate-400 hover:bg-slate-50',     'slate'],
           ] as $status => [$label, $classes, $color])
             <button wire:click="openStatusModal('{{ $status }}')"
                     @disabled($candidate->status === $status)
@@ -224,7 +231,8 @@
       <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl">
         <div class="px-6 pt-6 pb-4 border-b border-slate-100">
           <h3 class="text-lg font-semibold">
-            @if($newStatus === 'interview') Mover para Entrevista
+            @if($newStatus === 'interview') Mover para 1ª Entrevista
+            @elseif($newStatus === 'second_interview') Mover para 2ª Entrevista
             @elseif($newStatus === 'hired') Contratar Candidato
             @elseif($newStatus === 'discarded') Descartar Candidato
             @else Alterar Status
@@ -243,7 +251,24 @@
             @error('statusReason') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
 
-          @if($newStatus === 'interview')
+          @if(in_array($newStatus, ['interview', 'second_interview']))
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1.5">Data da entrevista</label>
+                <input type="datetime-local" wire:model="interviewDate"
+                       class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1.5">Modalidade</label>
+                <select wire:model="interviewType"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                  <option value="">Selecione</option>
+                  <option value="presencial">Presencial</option>
+                  <option value="online">Online</option>
+                  <option value="telefone">Telefone</option>
+                </select>
+              </div>
+            </div>
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-2">Avaliação (opcional)</label>
               <div class="flex items-center gap-2 mb-3">
@@ -261,7 +286,7 @@
                 @endif
               </div>
               <textarea wire:model="ratingComment" rows="2"
-                        placeholder="Texto de avaliação (opcional)..."
+                        placeholder="Observações sobre a avaliação (opcional)..."
                         class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"></textarea>
             </div>
           @endif
