@@ -39,7 +39,6 @@
     font-size: 14px;
     font-weight: 700;
     color: #1a56db;
-    font-family: monospace;
     background: #eff6ff;
     padding: 4px 10px;
     border-radius: 4px;
@@ -106,8 +105,8 @@
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
   }
-  td.right { text-align: right; font-family: monospace; }
-  td.mono  { font-family: monospace; font-size: 11px; color: #64748b; }
+  td.right { text-align: right; }
+  td.mono  { font-size: 11px; color: #64748b; }
   .category-badge {
     background: #eff6ff;
     color: #1a56db;
@@ -131,7 +130,6 @@
   .total-row .total-value {
     font-size: 18px;
     color: #1a56db;
-    font-family: monospace;
   }
 
   /* Notes */
