@@ -5,7 +5,7 @@
     <div class="text-center mb-8">
       <p class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-1">Formulário de Candidatura</p>
       <h1 class="text-2xl font-semibold text-slate-900">{{ $job->title }}</h1>
-      <p class="text-slate-500 mt-1">{{ $job->position }}</p>
+      <p class="text-slate-500 mt-1">{{ $job->position?->name ?? '' }}</p>
     </div>
 
     @if($job->status === 'closed')
@@ -49,6 +49,13 @@
           <input type="email" wire:model="email" placeholder="seu@email.com"
                  class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
           @error('email') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1.5">CPF (opcional)</label>
+          <input type="text" wire:model="cpf" placeholder="000.000.000-00" maxlength="14"
+                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+          @error('cpf') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div>

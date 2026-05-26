@@ -44,9 +44,12 @@ class CandidateList extends Component
     #[Validate('nullable|string|max:2000')]
     public string $notes = '';
 
+    #[Validate('nullable|string|max:14')]
+    public string $cpf = '';
+
     public function mount(Job $job): void
     {
-        $this->job = $job;
+        $this->job = $job->load('position');
     }
 
     public function updatingStatusFilter(): void
@@ -79,7 +82,7 @@ class CandidateList extends Component
 
     public function openModal(): void
     {
-        $this->reset(['name', 'email', 'phone', 'linkedin', 'salary_expectation', 'notes', 'cv']);
+        $this->reset(['name', 'email', 'cpf', 'phone', 'linkedin', 'salary_expectation', 'notes', 'cv']);
         $this->resetValidation();
         $this->showModal = true;
     }
@@ -93,6 +96,12 @@ class CandidateList extends Component
     {
         $this->validate();
 
+        if ($this->cpf !== '' && ! Candidate::isValidCpf($this->cpf)) {
+            $this->addError('cpf', 'CPF inválido.');
+
+            return;
+        }
+
         $duplicate = Candidate::where('email', $this->email)
             ->where('job_id', '!=', $this->job->id)
             ->with('job')
@@ -104,6 +113,7 @@ class CandidateList extends Component
             'job_id' => $this->job->id,
             'name' => $this->name,
             'email' => $this->email,
+            'cpf' => $this->cpf ? Candidate::formatCpf($this->cpf) : null,
             'phone' => $this->phone ?: null,
             'linkedin' => $this->linkedin ?: null,
             'salary_expectation' => $this->salary_expectation ?: null,
@@ -144,10 +154,11 @@ class CandidateList extends Component
 
         return response()->streamDownload(function () use ($candidates) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Nome', 'E-mail', 'Telefone', 'Pretensão Salarial', 'Status', 'Origem', 'Data de Inscrição']);
+            fputcsv($out, ['Nome', 'CPF', 'E-mail', 'Telefone', 'Pretensão Salarial', 'Status', 'Origem', 'Data de Inscrição']);
             foreach ($candidates as $c) {
                 fputcsv($out, [
                     $c->name,
+                    $c->cpf ?? '',
                     $c->email,
                     $c->phone ?? '',
                     $c->salary_expectation ? 'R$ '.number_format($c->salary_expectation, 2, ',', '.') : '',

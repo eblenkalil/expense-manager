@@ -23,6 +23,9 @@ class PublicJobApplication extends Component
     #[Validate('required|email|max:255')]
     public string $email = '';
 
+    #[Validate('nullable|string|max:14')]
+    public string $cpf = '';
+
     #[Validate('required|string|max:20')]
     public string $phone = '';
 
@@ -40,7 +43,7 @@ class PublicJobApplication extends Component
 
     public function mount(string $token): void
     {
-        $this->job = Job::where('public_token', $token)->firstOrFail();
+        $this->job = Job::with('position')->where('public_token', $token)->firstOrFail();
     }
 
     public function submit(): void
@@ -51,12 +54,19 @@ class PublicJobApplication extends Component
 
         $this->validate();
 
+        if ($this->cpf !== '' && ! Candidate::isValidCpf($this->cpf)) {
+            $this->addError('cpf', 'CPF inválido.');
+
+            return;
+        }
+
         $cvPath = $this->cv->store('curriculos', 'public');
 
         $candidate = Candidate::create([
             'job_id' => $this->job->id,
             'name' => $this->name,
             'email' => $this->email,
+            'cpf' => $this->cpf ? Candidate::formatCpf($this->cpf) : null,
             'phone' => $this->phone ?: null,
             'linkedin' => $this->linkedin ?: null,
             'salary_expectation' => $this->salary_expectation ?: null,

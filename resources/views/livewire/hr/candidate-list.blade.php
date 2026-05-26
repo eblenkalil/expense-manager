@@ -9,7 +9,7 @@
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-2xl font-semibold text-slate-900">Candidatos</h2>
-        <p class="text-slate-400 mt-1 text-sm">{{ $job->title }} — {{ $job->position }}</p>
+        <p class="text-slate-400 mt-1 text-sm">{{ $job->title }} — {{ $job->position?->name ?? '' }}</p>
       </div>
       <div class="flex items-center gap-2">
         <button wire:click="exportCsv"
@@ -31,17 +31,19 @@
   </div>
 
   {{-- Contadores por status --}}
-  <div class="grid grid-cols-4 gap-4 mb-6">
+  <div class="grid grid-cols-5 gap-3 mb-6">
     @foreach([
-      'pending'   => ['Aguardando',    'amber',   $counts['pending'] ?? 0],
-      'interview' => ['Em Entrevista', 'blue',    $counts['interview'] ?? 0],
-      'hired'     => ['Contratados',   'emerald', $counts['hired'] ?? 0],
-      'discarded' => ['Descartados',   'slate',   $counts['discarded'] ?? 0],
+      'pending'          => ['Aguardando',   'amber',   $counts['pending'] ?? 0],
+      'interview'        => ['1ª Entrevista','blue',    $counts['interview'] ?? 0],
+      'second_interview' => ['2ª Entrevista','purple',  $counts['second_interview'] ?? 0],
+      'hired'            => ['Contratados',  'emerald', $counts['hired'] ?? 0],
+      'discarded'        => ['Descartados',  'slate',   $counts['discarded'] ?? 0],
     ] as $status => [$label, $color, $count])
       @php
         $colorMap = [
           'amber'   => 'bg-amber-50 border-amber-200 text-amber-700',
           'blue'    => 'bg-blue-50 border-blue-200 text-blue-700',
+          'purple'  => 'bg-purple-50 border-purple-200 text-purple-700',
           'emerald' => 'bg-emerald-50 border-emerald-200 text-emerald-700',
           'slate'   => 'bg-slate-100 border-slate-200 text-slate-600',
         ];
@@ -60,7 +62,8 @@
             class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
       <option value="">Todos os status</option>
       <option value="pending">Aguardando</option>
-      <option value="interview">Em Entrevista</option>
+      <option value="interview">1ª Entrevista</option>
+      <option value="second_interview">2ª Entrevista</option>
       <option value="hired">Contratado</option>
       <option value="discarded">Descartado</option>
     </select>
@@ -148,6 +151,12 @@
             <input type="email" wire:model="email" placeholder="email@exemplo.com"
                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
             @error('email') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1.5">CPF</label>
+            <input type="text" wire:model="cpf" placeholder="000.000.000-00" maxlength="14"
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+            @error('cpf') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1.5">Telefone</label>
