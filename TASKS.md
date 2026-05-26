@@ -6,74 +6,7 @@ Antes de qualquer alteração visual, ler o UI_STYLE_GUIDE.md.
 
 ---
 
-## 1. Corrigir preview de recibo (404)
-
-O modal de visualização de recibo de despesa está retornando 404.
-Investigar como o arquivo é armazenado (storage path) e como a URL é gerada.
-Garantir que o link aponte para a rota correta e que o arquivo seja servido com autenticação quando necessário.
-
----
-
-## 2. Corrigir modal de recibo (UX)
-
-O modal de preview do recibo está ocupando a tela inteira.
-Transformar em um slide-over lateral ou modal centralizado com tamanho adequado.
-Seguir o UI_STYLE_GUIDE.md para estilo do modal (rounded-xl, border, shadow-sm, overlay slate-900/40).
-
----
-
-## 3. Seleção de despesas para gerar relatório
-
-Na listagem de despesas ("Minhas Despesas"), adicionar:
-- Checkbox em cada linha de despesa com status "available"
-- Barra de ação flutuante que aparece ao selecionar ao menos uma despesa
-- Botão "Gerar Relatório" na barra de ação
-- Modal ou slide-over para preencher título do relatório, chave PIX do usuário e confirmar as despesas selecionadas
-- Ao confirmar, criar o relatório e associar as despesas selecionadas, mudando o status delas para "locked"
-
----
-
-## 4. Botão de confirmar relatório fica desabilitado indevidamente
-
-Na criação do relatório, o botão de confirmação permanece desabilitado mesmo após as despesas serem selecionadas.
-O usuário precisa desselecionar e selecionar novamente para o botão ser habilitado.
-Investigar o estado reativo do componente Livewire e corrigir a lógica de habilitação do botão para que reflita corretamente a seleção atual.
-
----
-
-## 5. Corrigir dashboard
-
-- Fundo da página deve ser bg-slate-50 (atualmente aparece branco)
-- Seção do gráfico "Despesas reembolsadas por mês" deve ter o card container (rounded-xl border border-slate-200 bg-white p-6)
-
----
-
-## 6. Datas do gráfico em português
-
-No dashboard, o gráfico de barras "Despesas reembolsadas por mês" exibe os meses em inglês.
-Garantir que os labels do eixo X estejam em português (ex: "jan/25", "fev/25").
-Verificar o locale do Carbon/PHP usado para gerar os labels no componente Livewire do dashboard.
-Usar translatedFormat ou setLocale('pt_BR') para formatar corretamente.
-
----
-
-## 7. Aplicar UI_STYLE_GUIDE.md em todas as telas
-
-Revisar e atualizar todas as views Blade e componentes Livewire para seguir o guia de estilo definido em UI_STYLE_GUIDE.md:
-- Paleta de cores: slate-50 background, white cards, blue-600 primário
-- Tipografia: text-sm, font-medium, font-semibold conforme hierarquia
-- Bordas: border-slate-200, rounded-xl em cards, rounded-lg em inputs e botões
-- Botões: classes padronizadas do guia (primário, secundário, fantasma)
-- Inputs: h-10, rounded-lg, border-slate-300, focus:ring-blue-500/20
-- Tabelas: cabeçalho bg-slate-50, linhas com divide-slate-100
-- Badges de status: cores suaves (emerald, amber, red, slate)
-- Animações: transition duration-150 ease-out
-- Espaçamento: p-6 em cards, gap-6 entre seções
-- Sidebar e header: conforme seções 15 e 16 do guia
-
----
-
-## 8. PDF do relatório — fonte uniforme
+## 1. PDF do relatório — fonte uniforme
 
 No relatório de despesas gerado em PDF, a fonte não está consistente entre as seções.
 Garantir que todo o documento use uma única família de fonte (preferencialmente DejaVu Sans ou similar compatível com dompdf).
@@ -81,14 +14,14 @@ Definir a fonte globalmente no CSS do template PDF em vez de por elemento.
 
 ---
 
-## 9. PDF do relatório — alinhamento do status
+## 2. PDF do relatório — alinhamento do status
 
 No relatório PDF, a coluna de status das despesas está desalinhada.
 Corrigir o alinhamento para que fique centralizado ou alinhado à direita de forma consistente com as demais colunas.
 
 ---
 
-## 10. PDF do relatório — incluir chave PIX
+## 3. PDF do relatório — incluir chave PIX
 
 Adicionar campo "Chave PIX" no formulário de criação do relatório.
 Salvar a chave PIX no modelo Report (adicionar migration se necessário).
@@ -97,7 +30,7 @@ A chave PIX é a informação de pagamento principal e deve estar visível no PD
 
 ---
 
-## 11. Download dos anexos junto com o PDF
+## 4. Download dos anexos junto com o PDF
 
 Na tela de visualização do relatório, adicionar botão "Baixar Anexos".
 Ao clicar, compactar todos os arquivos anexados nas despesas vinculadas ao relatório em um arquivo ZIP.
@@ -106,7 +39,7 @@ O nome do arquivo deve seguir o padrão: `anexos-{protocol_number}.zip`.
 
 ---
 
-## 12. Despesas vinculadas a relatório somem da listagem
+## 5. Despesas vinculadas a relatório somem da listagem
 
 Atualmente, despesas com status "locked" (vinculadas a um relatório) somem completamente da listagem "Minhas Despesas".
 O comportamento correto é:
@@ -117,7 +50,7 @@ Ajustar o filtro da query e o badge de status na listagem.
 
 ---
 
-## 13. Cadastro de usuários e perfis
+## 6. Cadastro de usuários e perfis
 
 Implementar gerenciamento de usuários e permissões:
 - Tela de listagem de usuários (apenas para administradores)
@@ -130,7 +63,7 @@ Implementar gerenciamento de usuários e permissões:
 
 ---
 
-## 14. Painel admin/financeiro — gestão de relatórios pendentes
+## 7. Painel admin/financeiro — gestão de relatórios pendentes
 
 No perfil admin, criar tela de gestão de relatórios submetidos para pagamento:
 - Listagem de todos os relatórios com status "submitted" de todos os colaboradores
