@@ -126,10 +126,9 @@ class ReportDetail extends Component
         }
 
         $this->report->expenses()->detach();
-        $this->report->delete();
 
-        session()->flash('success', 'Relatório descartado. As despesas estão disponíveis para um novo relatório.');
-        $this->redirect(route('reports.index'));
+        session()->flash('success', 'Despesas liberadas. O relatório reprovado foi mantido no histórico.');
+        $this->redirect(route('expenses.index'));
     }
 
     public function closePreview(): void
