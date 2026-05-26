@@ -1,2 +1,1 @@
--e import './bootstrap';
-
+import './bootstrap';
