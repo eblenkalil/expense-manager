@@ -1,5 +1,2 @@
-import './bootstrap';
-import Alpine from 'alpinejs';
+-e import './bootstrap';
 
-window.Alpine = Alpine;
-Alpine.start();
