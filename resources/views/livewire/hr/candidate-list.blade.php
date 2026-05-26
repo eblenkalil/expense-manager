@@ -153,7 +153,7 @@
             @error('email') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
           <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1.5">CPF</label>
+            <label class="block text-sm font-medium text-slate-600 mb-1.5">CPF *</label>
             <input type="text" wire:model="cpf" placeholder="000.000.000-00" maxlength="14"
                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
             @error('cpf') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror

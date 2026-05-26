@@ -44,7 +44,7 @@ class CandidateList extends Component
     #[Validate('nullable|string|max:2000')]
     public string $notes = '';
 
-    #[Validate('nullable|string|max:14')]
+    #[Validate('required|string|max:14')]
     public string $cpf = '';
 
     public function mount(Job $job): void
@@ -96,7 +96,7 @@ class CandidateList extends Component
     {
         $this->validate();
 
-        if ($this->cpf !== '' && ! Candidate::isValidCpf($this->cpf)) {
+        if (! Candidate::isValidCpf($this->cpf)) {
             $this->addError('cpf', 'CPF inválido.');
 
             return;

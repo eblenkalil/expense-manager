@@ -23,7 +23,7 @@ class PublicJobApplication extends Component
     #[Validate('required|email|max:255')]
     public string $email = '';
 
-    #[Validate('nullable|string|max:14')]
+    #[Validate('required|string|max:14')]
     public string $cpf = '';
 
     #[Validate('required|string|max:20')]
@@ -54,7 +54,7 @@ class PublicJobApplication extends Component
 
         $this->validate();
 
-        if ($this->cpf !== '' && ! Candidate::isValidCpf($this->cpf)) {
+        if (! Candidate::isValidCpf($this->cpf)) {
             $this->addError('cpf', 'CPF inválido.');
 
             return;

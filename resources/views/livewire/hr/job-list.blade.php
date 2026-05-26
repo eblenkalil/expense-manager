@@ -58,7 +58,7 @@
         </thead>
         <tbody>
           @foreach($jobs as $job)
-            @php $daysOpen = $job->created_at->diffInDays(now()); @endphp
+            @php $daysOpen = (int) $job->created_at->diffInDays(now()); @endphp
             <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-150 ease-out">
               <td class="px-4 py-3">
                 <a href="{{ route('hr.candidates.index', $job) }}"
