@@ -22,4 +22,7 @@
 
   /* Loading indicator do Livewire */
   [wire\:loading] { opacity: 0.7; }
+
+  /* Alpine.js: esconde elementos até o Alpine inicializar */
+  [x-cloak] { display: none !important; }
 }
