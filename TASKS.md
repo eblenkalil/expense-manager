@@ -122,8 +122,123 @@ Implementar gerenciamento de usuários e permissões:
 - Perfis disponíveis:
   - admin: acesso total ao sistema, vê dados de todos os usuários e relatórios
   - collaborator: cadastra despesas e gera relatórios próprios, vê apenas seus próprios dados
+  - hr: acesso exclusivo ao módulo de recrutamento (vagas e candidatos)
+  - financial: acesso ao painel de relatórios pendentes de pagamento
+- Um usuário pode ter múltiplos perfis simultaneamente (ex: admin + hr)
 - Controle de acesso por perfil em todas as rotas e componentes Livewire
 - Proteção de rotas administrativas via middleware ou policy
+
+---
+
+## 10a. Módulo de recrutamento — modelo de dados e vagas
+
+Criar as migrations e models para o módulo de recrutamento:
+
+### Tabela: jobs (vagas)
+- id, title (nome da vaga), position (cargo), description (texto livre), status (open/closed), public_token (UUID único gerado automaticamente), created_by (user_id), timestamps
+
+### Tabela: candidates (candidatos)
+- id, job_id, name, email, phone, linkedin (opcional), salary_expectation (opcional), cv_path (PDF obrigatório), notes (comentário do próprio candidato ao se inscrever), status (pending/interview/hired/discarded), source (manual/public_form), created_by (user_id, nulo se veio do formulário público), timestamps
+
+### Tabela: candidate_events (linha do tempo)
+- id, candidate_id, user_id (nulo se sistema), type (status_change/comment/rating), content (texto descritivo do evento), previous_status, new_status (quando type=status_change), rating (1-5, quando type=rating), created_at
+
+Regras:
+- public_token deve ser gerado automaticamente via UUID ao criar a vaga
+- cv_path armazena em storage/app/private/curriculos/{id}.pdf
+- Ao mudar status do candidato, sempre criar um candidate_event do tipo status_change com o motivo informado
+- Ao adicionar comentário, criar candidate_event do tipo comment
+- Ao registrar avaliação, criar candidate_event do tipo rating
+
+---
+
+## 10b. Módulo de recrutamento — formulário público de candidatura
+
+Criar rota pública (sem autenticação) acessível via token da vaga:
+- URL: /vagas/{public_token}
+- Exibir nome e descrição da vaga
+- Formulário com: nome, email, telefone, LinkedIn (opcional), pretensão salarial (opcional), upload de CV em PDF (obrigatório), comentário do candidato (opcional)
+- Ao submeter, criar candidate com status "pending" e source "public_form"
+- Se a vaga estiver fechada (status=closed), exibir mensagem informando que não está aceitando candidaturas
+- Seguir UI_STYLE_GUIDE.md para estilo do formulário público
+- Não exigir login, não expor dados de outros candidatos
+
+---
+
+## 10c. Módulo de recrutamento — listagem e gestão de vagas (RH)
+
+Criar tela /hr/jobs acessível apenas para usuários com perfil hr ou admin:
+- Listagem de vagas com: título, cargo, status (aberta/fechada), total de candidatos por status (aguardando, entrevista, contratado, descartado)
+- Botão para criar nova vaga (modal com título, cargo, descrição)
+- Botão para editar vaga existente
+- Botão para fechar/reabrir vaga manualmente
+- Botão para copiar o link público tokenizado da vaga
+- Ao clicar na vaga, ir para a tela de candidatos daquela vaga (tarefa 10d)
+- Adicionar link "Recrutamento" no menu de navegação visível apenas para perfis hr e admin
+
+---
+
+## 10d. Módulo de recrutamento — listagem de candidatos por vaga (RH)
+
+Criar tela /hr/jobs/{id}/candidates acessível apenas para perfis hr e admin:
+- Listagem de candidatos com: nome, email, pretensão salarial, status (badge colorido), data de inscrição, origem (manual/formulário público)
+- Filtros por status e origem
+- Botão para adicionar candidato manualmente (modal com os mesmos campos do formulário público)
+- Ao clicar no candidato, abrir tela de detalhe (tarefa 10e)
+- Contador de candidatos por status exibido no topo da página
+
+Status e cores dos badges:
+- pending (aguardando): amber
+- interview (em entrevista): blue
+- hired (contratado): emerald
+- discarded (descartado): slate
+
+---
+
+## 10e. Módulo de recrutamento — detalhe do candidato e linha do tempo (RH)
+
+Criar tela /hr/candidates/{id} acessível apenas para perfis hr e admin:
+
+### Seção de dados do candidato:
+- Nome, email, telefone, LinkedIn, pretensão salarial, origem, data de inscrição
+- Botão para visualizar/baixar CV em PDF
+- Badge de status atual
+
+### Botões de ação de status (sempre visíveis, qualquer status pode mudar para qualquer outro):
+- "Mover para Entrevista": abre modal com campo de motivo (opcional) e campo de avaliação 1-5 estrelas + texto de avaliação estruturada
+- "Contratar": abre modal com campo de motivo obrigatório
+- "Descartar": abre modal com campo de motivo obrigatório
+- O status atual fica destacado e o botão correspondente fica desabilitado
+
+### Seção de comentários (apenas perfil hr e admin):
+- Campo de texto para adicionar novo comentário
+- Comentários existentes podem ser editados pelo autor
+- Comentários não podem ser deletados (apenas editados)
+
+### Linha do tempo (cronológica, do mais recente ao mais antigo):
+- Mudanças de status: ícone de seta, descrição "Status alterado de X para Y por [usuário] — Motivo: [motivo]"
+- Avaliações: ícone de estrela, nota (1-5) e texto da avaliação, nome do avaliador
+- Comentários de RH: ícone de balão, texto do comentário, nome do autor, data (editável)
+- Inscrição inicial: ícone de entrada, "Candidato inscrito via [formulário público/cadastro manual]", comentário do candidato se houver
+
+---
+
+## 10f. Módulo de recrutamento — reconhecimento de candidato recorrente
+
+Ao cadastrar um candidato (manual ou formulário público), verificar se já existe um candidato com o mesmo email no sistema.
+Se existir:
+- Exibir aviso para o RH: "Este candidato já se inscreveu anteriormente" com link para o histórico anterior
+- Permitir prosseguir com a nova candidatura normalmente (cria novo registro de candidate vinculado à nova vaga)
+- Na tela de detalhe do candidato, exibir seção "Candidaturas anteriores" com links para outras vagas que o candidato já se inscreveu
+
+---
+
+## 10g. Módulo de recrutamento — exportação de candidatos
+
+Na tela de listagem de candidatos por vaga (tarefa 10d), adicionar botão "Exportar":
+- Exportar lista filtrada (respeitando filtros de status e origem ativos) em CSV
+- Colunas: nome, email, telefone, pretensão salarial, status, origem, data de inscrição
+- Nome do arquivo: `candidatos-{titulo-da-vaga}-{data}.csv`
 
 ---
 
