@@ -15,6 +15,14 @@ Route::get('/', fn() => redirect()->route(
     auth()->check() ? 'dashboard' : 'login'
 ));
 
+// Logout
+Route::post('/logout', function () {
+    auth()->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->middleware('auth')->name('logout');
+
 // Rotas autenticadas
 Route::middleware('auth')->group(function () {
 
@@ -35,3 +43,5 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin', AdminIndex::class)->name('admin.index');
     });
 });
+
+require __DIR__.'/auth.php';
