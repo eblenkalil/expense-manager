@@ -10,6 +10,7 @@ use Livewire\Component;
 class AdminUsers extends Component
 {
     public bool $showModal = false;
+
     public ?int $editingId = null;
 
     #[Validate('required|string|max:255')]
@@ -23,30 +24,36 @@ class AdminUsers extends Component
 
     public ?string $password_confirmation = null;
 
-    #[Validate('required|in:admin,collaborator')]
-    public string $role = 'collaborator';
+    public array $selectedRoles = ['collaborator'];
+
+    public static array $availableRoles = [
+        'collaborator' => 'Colaborador',
+        'admin' => 'Administrador',
+        'hr' => 'RH',
+        'financial' => 'Financeiro',
+    ];
 
     public function openCreate(): void
     {
-        $this->editingId             = null;
-        $this->name                  = '';
-        $this->email                 = '';
-        $this->password              = null;
+        $this->editingId = null;
+        $this->name = '';
+        $this->email = '';
+        $this->password = null;
         $this->password_confirmation = null;
-        $this->role                  = 'collaborator';
+        $this->selectedRoles = ['collaborator'];
         $this->resetValidation();
         $this->showModal = true;
     }
 
     public function openEdit(int $userId): void
     {
-        $user                        = User::findOrFail($userId);
-        $this->editingId             = $userId;
-        $this->name                  = $user->name;
-        $this->email                 = $user->email;
-        $this->password              = null;
+        $user = User::findOrFail($userId);
+        $this->editingId = $userId;
+        $this->name = $user->name;
+        $this->email = $user->email;
+        $this->password = null;
         $this->password_confirmation = null;
-        $this->role                  = $user->role;
+        $this->selectedRoles = $user->roles ?? ['collaborator'];
         $this->resetValidation();
         $this->showModal = true;
     }
@@ -59,9 +66,10 @@ class AdminUsers extends Component
     public function save(): void
     {
         $rules = [
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email' . ($this->editingId ? ",{$this->editingId}" : ''),
-            'role'  => 'required|in:admin,collaborator',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email'.($this->editingId ? ",{$this->editingId}" : ''),
+            'selectedRoles' => 'required|array|min:1',
+            'selectedRoles.*' => 'in:admin,collaborator,hr,financial',
         ];
 
         if (! $this->editingId) {
@@ -74,7 +82,7 @@ class AdminUsers extends Component
 
         if ($this->editingId) {
             $user = User::findOrFail($this->editingId);
-            $data = ['name' => $this->name, 'email' => $this->email, 'role' => $this->role];
+            $data = ['name' => $this->name, 'email' => $this->email, 'roles' => $this->selectedRoles];
             if ($this->password) {
                 $data['password'] = Hash::make($this->password);
             }
@@ -82,10 +90,10 @@ class AdminUsers extends Component
             $message = "Usuário {$user->name} atualizado.";
         } else {
             $user = User::create([
-                'name'     => $this->name,
-                'email'    => $this->email,
+                'name' => $this->name,
+                'email' => $this->email,
                 'password' => Hash::make($this->password),
-                'role'     => $this->role,
+                'roles' => $this->selectedRoles,
             ]);
             $message = "Usuário {$user->name} criado com sucesso.";
         }
@@ -96,7 +104,9 @@ class AdminUsers extends Component
 
     public function delete(int $userId): void
     {
-        if ($userId === auth()->id()) return;
+        if ($userId === auth()->id()) {
+            return;
+        }
 
         $user = User::findOrFail($userId);
         $user->delete();
@@ -107,6 +117,7 @@ class AdminUsers extends Component
     {
         return view('livewire.admin.admin-users', [
             'users' => User::orderBy('name')->get(),
+            'availableRoles' => self::$availableRoles,
         ]);
     }
 }

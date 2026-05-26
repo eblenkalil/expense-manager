@@ -18,7 +18,7 @@
         <tr>
           <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Nome</th>
           <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">E-mail</th>
-          <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Perfil</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Perfis</th>
           <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Notificações</th>
           <th class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase">Desde</th>
           <th class="px-4 py-3"></th>
@@ -35,9 +35,25 @@
             </td>
             <td class="px-4 py-3 text-slate-500 font-mono text-xs">{{ $usr->email }}</td>
             <td class="px-4 py-3">
-              <x-status-badge :color="$usr->role === 'admin' ? 'blue' : 'gray'">
-                {{ $usr->role === 'admin' ? 'Admin' : 'Colaborador' }}
-              </x-status-badge>
+              <div class="flex flex-wrap gap-1">
+                @foreach($usr->roles ?? [] as $role)
+                  @php
+                    $colors = [
+                      'admin'        => 'blue',
+                      'collaborator' => 'gray',
+                      'hr'           => 'purple',
+                      'financial'    => 'emerald',
+                    ];
+                    $labels = [
+                      'admin'        => 'Admin',
+                      'collaborator' => 'Colaborador',
+                      'hr'           => 'RH',
+                      'financial'    => 'Financeiro',
+                    ];
+                  @endphp
+                  <x-status-badge :color="$colors[$role] ?? 'gray'">{{ $labels[$role] ?? $role }}</x-status-badge>
+                @endforeach
+              </div>
             </td>
             <td class="px-4 py-3">
               <span class="{{ $usr->notify_email ? 'text-emerald-600' : 'text-slate-400' }} text-xs">
@@ -108,13 +124,30 @@
           @endif
 
           <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1.5">Perfil *</label>
-            <select wire:model="role"
-                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-              <option value="collaborator">Colaborador</option>
-              <option value="admin">Administrador</option>
-            </select>
-            @error('role') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+            <label class="block text-sm font-medium text-slate-600 mb-2">Perfis *</label>
+            <div class="space-y-2 border border-slate-200 rounded-lg p-3">
+              @foreach($availableRoles as $roleKey => $roleLabel)
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox"
+                         wire:model="selectedRoles"
+                         value="{{ $roleKey }}"
+                         class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                  <div>
+                    <span class="text-sm font-medium text-slate-700">{{ $roleLabel }}</span>
+                    @php
+                      $descriptions = [
+                        'collaborator' => 'Cadastra despesas e gera relatórios próprios',
+                        'admin'        => 'Acesso total: pagamentos, usuários e categorias',
+                        'hr'           => 'Acesso ao módulo de recrutamento',
+                        'financial'    => 'Acesso ao painel de relatórios pendentes de pagamento',
+                      ];
+                    @endphp
+                    <p class="text-xs text-slate-400">{{ $descriptions[$roleKey] ?? '' }}</p>
+                  </div>
+                </label>
+              @endforeach
+            </div>
+            @error('selectedRoles') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
 
         </div>

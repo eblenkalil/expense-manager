@@ -11,7 +11,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'notify_email',
+        'name', 'email', 'password', 'roles', 'notify_email',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -20,14 +20,51 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'notify_email'      => 'boolean',
+            'password' => 'hashed',
+            'notify_email' => 'boolean',
+            'roles' => 'array',
         ];
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return in_array($role, $this->roles ?? []);
+    }
+
+    public function hasAnyRole(array $roles): bool
+    {
+        return count(array_intersect($roles, $this->roles ?? [])) > 0;
     }
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->hasRole('admin');
+    }
+
+    public function isHr(): bool
+    {
+        return $this->hasRole('hr');
+    }
+
+    public function isFinancial(): bool
+    {
+        return $this->hasRole('financial');
+    }
+
+    public function getRoleLabelAttribute(): string
+    {
+        $labels = [
+            'admin' => 'Administrador',
+            'collaborator' => 'Colaborador',
+            'hr' => 'RH',
+            'financial' => 'Financeiro',
+        ];
+
+        $names = collect($this->roles ?? [])
+            ->map(fn ($r) => $labels[$r] ?? $r)
+            ->implode(', ');
+
+        return $names ?: 'Sem perfil';
     }
 
     public function expenses()

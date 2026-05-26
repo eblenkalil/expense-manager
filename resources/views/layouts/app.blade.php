@@ -40,14 +40,27 @@
         Relatórios
       </x-nav-item>
 
-      @if(auth()->user()->isAdmin())
+      @if(auth()->user()->isAdmin() || auth()->user()->isFinancial())
         <div class="pt-3 pb-1 px-3">
-          <p class="text-xs font-mono text-slate-400 uppercase tracking-widest">Admin</p>
+          <p class="text-xs font-mono text-slate-400 uppercase tracking-widest">Gestão</p>
         </div>
         <x-nav-item href="{{ route('admin.index') }}" :active="request()->routeIs('admin.*')">
           <x-slot:icon><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></x-slot:icon>
-          Painel Admin
+          {{ auth()->user()->isAdmin() ? 'Painel Admin' : 'Pagamentos' }}
+        </x-nav-item>
+      @endif
+
+      @if(auth()->user()->isAdmin() || auth()->user()->isHr())
+        @if(!auth()->user()->isAdmin() && !auth()->user()->isFinancial())
+          <div class="pt-3 pb-1 px-3">
+            <p class="text-xs font-mono text-slate-400 uppercase tracking-widest">Gestão</p>
+          </div>
+        @endif
+        <x-nav-item href="{{ route('hr.jobs.index') }}" :active="request()->routeIs('hr.*')">
+          <x-slot:icon><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></x-slot:icon>
+          Recrutamento
         </x-nav-item>
       @endif
     </nav>
@@ -62,9 +75,7 @@
         </a>
         <div class="min-w-0 flex-1">
           <p class="text-sm font-medium truncate">{{ auth()->user()->name }}</p>
-          <p class="text-xs text-slate-400 truncate">
-            {{ auth()->user()->isAdmin() ? 'Administrador' : 'Colaborador' }}
-          </p>
+          <p class="text-xs text-slate-400 truncate">{{ auth()->user()->role_label }}</p>
         </div>
         <form method="POST" action="{{ route('logout') }}" class="flex-shrink-0">
           @csrf
