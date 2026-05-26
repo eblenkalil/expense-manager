@@ -125,7 +125,9 @@ class ReportDetail extends Component
             return;
         }
 
-        session()->flash('success', 'Suas despesas já estão disponíveis para um novo relatório.');
+        $this->report->expenses()->detach();
+
+        session()->flash('success', 'Despesas desvinculadas. Disponíveis para um novo relatório.');
         $this->redirect(route('expenses.index'));
     }
 
