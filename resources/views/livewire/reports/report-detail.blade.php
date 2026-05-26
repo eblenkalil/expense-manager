@@ -157,14 +157,13 @@
           </div>
           @if($report->user_id === auth()->id())
             <button wire:click="discardRejected"
-                    wire:confirm="Descartar este relatório e liberar as despesas para um novo relatório?"
                     wire:loading.attr="disabled"
-                    class="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-150 ease-out">
-              <svg class="w-4 h-4" wire:loading.remove wire:target="discardRejected" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    class="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-800 disabled:opacity-60 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-150 ease-out">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
               </svg>
-              <span wire:loading.remove wire:target="discardRejected">Descartar e liberar despesas</span>
-              <span wire:loading wire:target="discardRejected">Processando...</span>
+              <span wire:loading.remove wire:target="discardRejected">Ir para Minhas Despesas</span>
+              <span wire:loading wire:target="discardRejected">Aguarde...</span>
             </button>
           @endif
         </div>
