@@ -21,8 +21,6 @@ class JobList extends Component
     #[Validate('nullable|string|max:5000')]
     public string $description = '';
 
-    public string $copiedToken = '';
-
     public function openCreate(): void
     {
         $this->editingId = null;
@@ -79,13 +77,6 @@ class JobList extends Component
     {
         $job = Job::findOrFail($jobId);
         $job->update(['status' => $job->status === 'open' ? 'closed' : 'open']);
-    }
-
-    public function copyLink(int $jobId): void
-    {
-        $job = Job::findOrFail($jobId);
-        $this->copiedToken = $job->public_token;
-        $this->dispatch('copy-link', url: route('jobs.apply', $job->public_token));
     }
 
     public function render()

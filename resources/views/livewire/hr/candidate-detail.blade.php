@@ -23,14 +23,14 @@
             <x-status-badge :color="$candidate->status_color" class="mt-1">{{ $candidate->status_label }}</x-status-badge>
           </div>
           @if($candidate->cv_path)
-            <a href="{{ $candidate->cv_url }}" target="_blank"
-               class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
+            <button wire:click="openCvPreview"
+               class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-400 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
               </svg>
-              CV
-            </a>
+              Ver CV
+            </button>
           @endif
         </div>
         <div class="space-y-2 text-sm">
@@ -276,6 +276,42 @@
             <span wire:loading.remove wire:target="confirmStatusChange">Confirmar</span>
             <span wire:loading wire:target="confirmStatusChange">Salvando...</span>
           </button>
+        </div>
+      </div>
+    </div>
+  @endif
+
+  {{-- Slide-over preview CV --}}
+  @if($showCvPreview && $candidate->cv_path)
+    <div class="fixed inset-0 z-50 overflow-hidden">
+      <div class="absolute inset-0 bg-slate-900/40 transition-opacity duration-150 ease-out"
+           wire:click="closeCvPreview"></div>
+      <div class="absolute inset-y-0 right-0 flex max-w-full pl-10">
+        <div class="relative w-screen max-w-2xl">
+          <div class="flex h-full flex-col bg-white shadow-xl rounded-l-xl border-l border-slate-200 overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-900">Currículo</h3>
+                <p class="text-xs text-slate-400 mt-0.5">{{ $candidate->name }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <a href="{{ $candidate->cv_url }}" target="_blank"
+                   class="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
+                  Abrir em nova aba
+                </a>
+                <button wire:click="closeCvPreview"
+                        class="rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors duration-150 ease-out">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="flex-1 overflow-auto p-4 bg-slate-50">
+              <iframe src="{{ $candidate->cv_url }}"
+                      class="w-full h-full min-h-[calc(100vh-120px)] rounded-xl border border-slate-200"></iframe>
+            </div>
+          </div>
         </div>
       </div>
     </div>

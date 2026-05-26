@@ -83,11 +83,20 @@
                           class="text-xs border {{ $job->status === 'open' ? 'border-amber-200 hover:border-amber-400 text-amber-600 hover:text-amber-700' : 'border-emerald-200 hover:border-emerald-400 text-emerald-600 hover:text-emerald-700' }} rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
                     {{ $job->status === 'open' ? 'Fechar' : 'Reabrir' }}
                   </button>
-                  <button wire:click="copyLink({{ $job->id }})"
-                          x-data
-                          @copy-link.window="navigator.clipboard.writeText($event.detail.url); $el.textContent = 'Copiado!'; setTimeout(() => $el.textContent = 'Link', 2000)"
-                          class="text-xs border border-slate-200 hover:border-blue-300 text-slate-500 hover:text-blue-600 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
-                    Link
+                  <button
+                    x-data="{ copied: false, url: '{{ route('jobs.apply', $job->public_token) }}' }"
+                    @click="
+                      try {
+                        navigator.clipboard.writeText(url);
+                      } catch(e) {
+                        let t = document.createElement('textarea');
+                        t.value = url; document.body.appendChild(t); t.select();
+                        document.execCommand('copy'); document.body.removeChild(t);
+                      }
+                      copied = true; setTimeout(() => copied = false, 2000);
+                    "
+                    class="text-xs border border-slate-200 hover:border-blue-300 text-slate-500 hover:text-blue-600 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
+                    <span x-text="copied ? 'Copiado!' : 'Link'">Link</span>
                   </button>
                 </div>
               </td>

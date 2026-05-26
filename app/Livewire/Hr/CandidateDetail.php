@@ -10,6 +10,8 @@ class CandidateDetail extends Component
 {
     public Candidate $candidate;
 
+    public bool $showCvPreview = false;
+
     public string $newComment = '';
 
     public ?int $editingCommentId = null;
@@ -45,6 +47,16 @@ class CandidateDetail extends Component
     public function closeStatusModal(): void
     {
         $this->showStatusModal = false;
+    }
+
+    public function openCvPreview(): void
+    {
+        $this->showCvPreview = true;
+    }
+
+    public function closeCvPreview(): void
+    {
+        $this->showCvPreview = false;
     }
 
     public function confirmStatusChange(): void
