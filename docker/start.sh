@@ -2,7 +2,7 @@
 set -e
 
 echo "▶ Aguardando banco de dados..."
-sleep 5
+sleep 8
 
 echo "▶ Rodando migrations..."
 php artisan migrate --force
