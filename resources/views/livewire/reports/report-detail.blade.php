@@ -144,12 +144,28 @@
       @endif
 
       {{-- Rejection reason --}}
-      @if($report->status === 'rejected' && $report->rejection_reason)
-        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
-          <p class="text-sm font-semibold text-red-800 mb-2">Relatório reprovado</p>
-          <p class="text-sm text-red-700">{{ $report->rejection_reason }}</p>
-          @if($report->rejected_at)
-            <p class="text-xs text-red-400 mt-2">{{ $report->rejected_at->format('d/m/Y H:i') }}</p>
+      @if($report->status === 'rejected')
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+          <div>
+            <p class="text-sm font-semibold text-red-800 mb-1">Relatório reprovado</p>
+            @if($report->rejection_reason)
+              <p class="text-sm text-red-700">{{ $report->rejection_reason }}</p>
+            @endif
+            @if($report->rejected_at)
+              <p class="text-xs text-red-400 mt-1">{{ $report->rejected_at->format('d/m/Y H:i') }}</p>
+            @endif
+          </div>
+          @if($report->user_id === auth()->id())
+            <button wire:click="discardRejected"
+                    wire:confirm="Descartar este relatório e liberar as despesas para um novo relatório?"
+                    wire:loading.attr="disabled"
+                    class="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-150 ease-out">
+              <svg class="w-4 h-4" wire:loading.remove wire:target="discardRejected" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+              </svg>
+              <span wire:loading.remove wire:target="discardRejected">Descartar e liberar despesas</span>
+              <span wire:loading wire:target="discardRejected">Processando...</span>
+            </button>
           @endif
         </div>
       @endif

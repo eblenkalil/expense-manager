@@ -19,9 +19,11 @@ class ReportDetail extends Component
     public Report $report;
 
     // Preview inline do recibo
-    public bool   $showPreview   = false;
-    public string $previewUrl    = '';
-    public string $previewType   = '';
+    public bool $showPreview = false;
+
+    public string $previewUrl = '';
+
+    public string $previewType = '';
 
     // Upload comprovante pagamento (admin)
     #[Validate('nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:10240')]
@@ -40,11 +42,12 @@ class ReportDetail extends Component
     {
         if ($this->report->status !== 'draft' || $this->report->user_id !== auth()->id()) {
             session()->flash('error', 'Ação inválida.');
+
             return;
         }
 
         $this->report->update([
-            'status'       => 'submitted',
+            'status' => 'submitted',
             'submitted_at' => now(),
         ]);
 
@@ -52,7 +55,7 @@ class ReportDetail extends Component
         User::where('role', 'admin')
             ->where('notify_email', true)
             ->get()
-            ->each(fn($admin) => Mail::to($admin->email)->queue(
+            ->each(fn ($admin) => Mail::to($admin->email)->queue(
                 new ReportSubmittedMail($this->report)
             ));
 
@@ -64,6 +67,7 @@ class ReportDetail extends Component
     {
         if (! auth()->user()->isAdmin() || $this->report->status !== 'submitted') {
             session()->flash('error', 'Ação inválida.');
+
             return;
         }
 
@@ -79,10 +83,10 @@ class ReportDetail extends Component
 
         DB::transaction(function () use ($receiptPath, $receiptName) {
             $this->report->update([
-                'status'                => 'paid',
-                'paid_at'               => now(),
-                'payment_receipt_path'  => $receiptPath,
-                'payment_receipt_name'  => $receiptName,
+                'status' => 'paid',
+                'paid_at' => now(),
+                'payment_receipt_path' => $receiptPath,
+                'payment_receipt_name' => $receiptName,
             ]);
 
             // Arquiva as despesas
@@ -103,12 +107,29 @@ class ReportDetail extends Component
     public function previewReceipt(int $expenseId): void
     {
         $expense = $this->report->expenses->find($expenseId);
-        if (! $expense?->receipt_path) return;
+        if (! $expense?->receipt_path) {
+            return;
+        }
 
-        $this->previewUrl  = $expense->receipt_url;
+        $this->previewUrl = $expense->receipt_url;
         $this->previewType = in_array($expense->receipt_ext, ['jpg', 'jpeg', 'png', 'webp'])
             ? 'image' : 'pdf';
         $this->showPreview = true;
+    }
+
+    public function discardRejected(): void
+    {
+        if ($this->report->status !== 'rejected' || $this->report->user_id !== auth()->id()) {
+            session()->flash('error', 'Ação inválida.');
+
+            return;
+        }
+
+        $this->report->expenses()->detach();
+        $this->report->delete();
+
+        session()->flash('success', 'Relatório descartado. As despesas estão disponíveis para um novo relatório.');
+        $this->redirect(route('reports.index'));
     }
 
     public function closePreview(): void
