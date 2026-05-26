@@ -5,7 +5,7 @@
       <p class="text-slate-400 mt-1 text-sm">Selecione as despesas e defina o título</p>
     </div>
     <a href="{{ route('reports.index') }}"
-       class="text-sm text-slate-500 hover:text-slate-900 border border-slate-200 rounded-lg px-4 py-2 transition-colors">
+       class="text-sm text-slate-500 hover:text-slate-900 border border-slate-200 rounded-lg px-4 py-2 transition-colors duration-150 ease-out">
       ← Voltar
     </a>
   </div>
@@ -90,18 +90,18 @@
         <div>
           <label class="block text-sm font-medium text-slate-600 mb-1.5">Título *</label>
           <input type="text" wire:model="title" placeholder="Ex: Despesas Outubro 2025"
-                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
           @error('title') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
         <div>
           <label class="block text-sm font-medium text-slate-600 mb-1.5">Observações</label>
           <textarea wire:model="notes" rows="3" placeholder="Observações opcionais..."
-                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"></textarea>
         </div>
         <button wire:click="save"
                 wire:loading.attr="disabled"
                 @if(empty($selectedIds) || !$title) disabled @endif
-                class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-150 ease-out">
           <svg class="w-4 h-4" wire:loading.remove wire:target="save" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z"/>

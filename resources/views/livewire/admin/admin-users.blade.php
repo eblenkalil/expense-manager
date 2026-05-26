@@ -11,12 +11,6 @@
     </button>
   </div>
 
-  @if(session('success'))
-    <div class="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
-      {{ session('success') }}
-    </div>
-  @endif
-
   {{-- Tabela --}}
   <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
     <table class="w-full text-sm">
@@ -32,7 +26,7 @@
       </thead>
       <tbody>
         @foreach($users as $usr)
-          <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+          <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-150 ease-out">
             <td class="px-4 py-3 font-medium">
               {{ $usr->name }}
               @if($usr->id === auth()->id())
@@ -54,13 +48,13 @@
             <td class="px-4 py-3 text-right">
               <div class="flex items-center justify-end gap-2">
                 <button wire:click="openEdit({{ $usr->id }})"
-                        class="text-xs border border-slate-200 hover:border-blue-300 text-slate-600 hover:text-blue-600 rounded-lg px-3 py-1.5 transition-colors">
+                        class="text-xs border border-slate-200 hover:border-blue-300 text-slate-600 hover:text-blue-600 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
                   Editar
                 </button>
                 @if($usr->id !== auth()->id())
                   <button wire:click="delete({{ $usr->id }})"
                           wire:confirm="Remover o usuário {{ $usr->name }}? Esta ação não pode ser desfeita."
-                          class="text-xs border border-red-200 hover:border-red-400 text-red-500 hover:text-red-700 rounded-lg px-3 py-1.5 transition-colors">
+                          class="text-xs border border-red-200 hover:border-red-400 text-red-500 hover:text-red-700 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
                     Remover
                   </button>
                 @endif
@@ -126,7 +120,7 @@
         </div>
         <div class="px-6 pb-6 flex gap-3 justify-end">
           <button wire:click="closeModal"
-                  class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors duration-150 ease-out">
             Cancelar
           </button>
           <button wire:click="save" wire:loading.attr="disabled" wire:target="save"

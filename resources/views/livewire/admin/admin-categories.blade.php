@@ -2,7 +2,7 @@
 <div>
   <div class="flex justify-end mb-4">
     <button wire:click="openCreate"
-            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-150 ease-out">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
       </svg>
@@ -21,7 +21,7 @@
       </thead>
       <tbody>
         @foreach($categories as $cat)
-          <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+          <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-150 ease-out">
             <td class="px-4 py-3 font-medium {{ $cat->active ? '' : 'text-slate-400 line-through' }}">
               {{ $cat->name }}
             </td>
@@ -32,7 +32,7 @@
             </td>
             <td class="px-4 py-3 text-right flex items-center justify-end gap-2">
               <button wire:click="openEdit({{ $cat->id }})"
-                      class="text-xs border border-slate-200 hover:border-blue-300 text-slate-600 hover:text-blue-600 rounded-lg px-3 py-1.5 transition-colors">
+                      class="text-xs border border-slate-200 hover:border-blue-300 text-slate-600 hover:text-blue-600 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
                 Editar
               </button>
               <button wire:click="toggleActive({{ $cat->id }})"
@@ -58,16 +58,16 @@
         <div class="p-6">
           <label class="block text-sm font-medium text-slate-600 mb-1.5">Nome *</label>
           <input type="text" wire:model="name" placeholder="Ex: Alimentação"
-                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
           @error('name') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
         <div class="px-6 pb-6 flex gap-3 justify-end">
           <button wire:click="$set('showModal', false)"
-                  class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors duration-150 ease-out">
             Cancelar
           </button>
           <button wire:click="save"
-                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150 ease-out">
             Salvar
           </button>
         </div>

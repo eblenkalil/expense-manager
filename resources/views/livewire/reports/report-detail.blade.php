@@ -4,7 +4,7 @@
     <div>
       <div class="flex items-center gap-3 mb-1">
         <a href="{{ auth()->user()->isAdmin() ? route('admin.index') : route('reports.index') }}"
-           class="text-slate-400 hover:text-slate-700 text-sm transition-colors">← Voltar</a>
+           class="text-slate-400 hover:text-slate-700 text-sm transition-colors duration-150 ease-out">← Voltar</a>
         <x-status-badge :color="$report->status_color">{{ $report->status_label }}</x-status-badge>
       </div>
       <h2 class="text-2xl font-semibold text-slate-900">{{ $report->title }}</h2>
@@ -14,7 +14,7 @@
       @endif
     </div>
     <a href="{{ route('reports.pdf', $report) }}" target="_blank"
-       class="inline-flex items-center gap-2 text-sm text-slate-600 border border-slate-200 rounded-lg px-4 py-2 hover:bg-slate-50 transition-colors">
+       class="inline-flex items-center gap-2 text-sm text-slate-600 border border-slate-200 rounded-lg px-4 py-2 hover:bg-slate-50 transition-colors duration-150 ease-out">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z"/>
@@ -122,7 +122,7 @@
         <button wire:click="submit"
                 wire:confirm="Entregar este relatório para pagamento? Após a entrega, ele não poderá ser editado."
                 wire:loading.attr="disabled"
-                class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-3 rounded-xl transition-colors">
+                class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-3 rounded-xl transition-colors duration-150 ease-out">
           <svg class="w-4 h-4" wire:loading.remove wire:target="submit" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
           </svg>
@@ -157,7 +157,7 @@
             <button wire:click="markAsPaid"
                     wire:confirm="Confirmar o pagamento deste relatório?"
                     wire:loading.attr="disabled"
-                    class="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+                    class="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-150 ease-out">
               <span wire:loading.remove wire:target="markAsPaid">✓ Marcar como Pago</span>
               <span wire:loading wire:target="markAsPaid">Processando...</span>
             </button>
@@ -170,7 +170,7 @@
 
   {{-- Preview modal --}}
   @if($showPreview)
-    <div class="fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-6"
+    <div class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-6"
          wire:click.self="closePreview">
       <div class="bg-white rounded-2xl overflow-hidden shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
         <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">

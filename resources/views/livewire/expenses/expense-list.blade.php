@@ -18,18 +18,18 @@
   <div class="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex flex-wrap gap-3">
     <input wire:model.live.debounce.300ms="search" type="text"
            placeholder="Buscar descrição..."
-           class="flex-1 min-w-40 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+           class="flex-1 min-w-40 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
     <select wire:model.live="categoryFilter"
-            class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
       <option value="">Todas as categorias</option>
       @foreach($categories as $cat)
         <option value="{{ $cat->id }}">{{ $cat->name }}</option>
       @endforeach
     </select>
     <input wire:model.live="dateFrom" type="date"
-           class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+           class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
     <input wire:model.live="dateTo" type="date"
-           class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+           class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
   </div>
 
   {{-- Table --}}
@@ -96,7 +96,7 @@
                 @if($e->isAvailable())
                   <button wire:click="delete({{ $e->id }})"
                           wire:confirm="Excluir esta despesa?"
-                          class="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition-colors">
+                          class="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1 transition-colors duration-150 ease-out">
                     Excluir
                   </button>
                 @endif
@@ -150,7 +150,7 @@
             <label class="block text-sm font-medium text-slate-600 mb-1.5">Título do relatório *</label>
             <input type="text" wire:model="reportTitle"
                    placeholder="Ex: Viagem São Paulo — Mai/2025"
-                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/20 focus:border-blue-500">
             @error('reportTitle') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
 
@@ -168,7 +168,7 @@
         </div>
         <div class="px-6 pb-6 flex gap-3 justify-end">
           <button wire:click="closeReportModal"
-                  class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors duration-150 ease-out">
             Cancelar
           </button>
           <button wire:click="createReport" wire:loading.attr="disabled" wire:target="createReport"
@@ -207,13 +207,13 @@
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-1.5">Data *</label>
               <input type="date" wire:model="expense_date"
-                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
               @error('expense_date') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-1.5">Valor (R$) *</label>
               <input type="number" step="0.01" min="0" wire:model="value" placeholder="0,00"
-                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
               @error('value') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
           </div>
@@ -222,7 +222,7 @@
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1.5">Categoria *</label>
             <select wire:model="category_id"
-                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
               <option value="">Selecione...</option>
               @foreach($categories as $cat)
                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -235,13 +235,13 @@
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1.5">Descrição</label>
             <input type="text" wire:model="description" placeholder="Ex: Almoço com cliente..."
-                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
           </div>
         </div>
 
         <div class="px-6 pb-6 flex gap-3 justify-end">
           <button wire:click="closeModal"
-                  class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors duration-150 ease-out">
             Cancelar
           </button>
           <button wire:click="save" wire:loading.attr="disabled" wire:target="save"

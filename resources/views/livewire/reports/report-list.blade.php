@@ -5,7 +5,7 @@
       <p class="text-slate-400 mt-1 text-sm">Histórico de entregas de despesas</p>
     </div>
     <a href="{{ route('reports.create') }}"
-       class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
+       class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-150 ease-out">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
       </svg>
@@ -14,13 +14,13 @@
   </div>
 
   {{-- Filters --}}
-  <div class="flex flex-wrap gap-3 mb-4">
+  <div class="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex flex-wrap gap-3">
     <input wire:model.live.debounce.300ms="search" type="text"
            placeholder="Buscar por título ou protocolo..."
-           class="flex-1 min-w-48 text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+           class="flex-1 min-w-48 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
     @foreach(['all' => 'Todos', 'draft' => 'Rascunhos', 'submitted' => 'Pendentes', 'paid' => 'Pagos'] as $val => $label)
       <button wire:click="$set('statusFilter', '{{ $val }}')"
-              class="text-sm px-3 py-2 rounded-lg border transition-colors
+              class="text-sm px-3 py-2 rounded-lg border transition-colors duration-150 ease-out
                      {{ $statusFilter === $val
                         ? 'bg-blue-600 text-white border-blue-600'
                         : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300' }}">
@@ -53,7 +53,7 @@
         </thead>
         <tbody>
           @foreach($reports as $r)
-            <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+            <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-150 ease-out">
               <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ $r->protocol_number }}</td>
               <td class="px-4 py-3 font-medium">{{ $r->title }}</td>
               <td class="px-4 py-3 font-mono text-slate-500">{{ $r->expenses_count }}</td>
@@ -64,7 +64,7 @@
               </td>
               <td class="px-4 py-3 text-right">
                 <a href="{{ route('reports.show', $r) }}"
-                   class="text-xs text-slate-600 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors">
+                   class="text-xs text-slate-600 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors duration-150 ease-out">
                   Ver
                 </a>
               </td>
