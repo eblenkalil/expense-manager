@@ -13,14 +13,26 @@
         <p class="text-slate-500 text-sm mt-0.5">{{ $report->user->name }} · {{ $report->user->email }}</p>
       @endif
     </div>
-    <a href="{{ route('reports.pdf', $report) }}" target="_blank"
-       class="inline-flex items-center gap-2 text-sm text-slate-600 border border-slate-200 rounded-lg px-4 py-2 hover:bg-slate-50 transition-colors duration-150 ease-out">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z"/>
-      </svg>
-      Baixar PDF
-    </a>
+    <div class="flex items-center gap-2">
+      @if($report->expenses->filter(fn($e) => $e->receipt_path)->isNotEmpty())
+        <a href="{{ route('reports.attachments', $report) }}"
+           class="inline-flex items-center gap-2 text-sm text-slate-600 border border-slate-200 rounded-lg px-4 py-2 hover:bg-slate-50 transition-colors duration-150 ease-out">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+          </svg>
+          Baixar Anexos
+        </a>
+      @endif
+      <a href="{{ route('reports.pdf', $report) }}" target="_blank"
+         class="inline-flex items-center gap-2 text-sm text-slate-600 border border-slate-200 rounded-lg px-4 py-2 hover:bg-slate-50 transition-colors duration-150 ease-out">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z"/>
+        </svg>
+        Baixar PDF
+      </a>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

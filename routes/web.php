@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ReportAttachmentsController;
 use App\Http\Controllers\ReportPdfController;
 use App\Livewire\Admin\AdminIndex;
 use App\Livewire\Dashboard;
@@ -37,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/create',  CreateReport::class)->name('reports.create');
     Route::get('/reports/{report}', ReportDetail::class)->name('reports.show');
     Route::get('/reports/{report}/pdf', [ReportPdfController::class, 'download'])->name('reports.pdf');
+    Route::get('/reports/{report}/attachments', [ReportAttachmentsController::class, 'download'])->name('reports.attachments');
 
     // Admin (só admins)
     Route::middleware('admin')->group(function () {
