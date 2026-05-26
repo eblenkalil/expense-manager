@@ -238,3 +238,53 @@ Nunca commitar direto na `main`. Sempre abrir PR de `feat/*` ou `fix/*` → `dev
 - [ ] Migration criada se houve mudança no banco
 - [ ] `npm run build` rodado se houve mudança em CSS/JS
 - [ ] Commit com mensagem no padrão correto
+
+---
+
+## 🐳 Infraestrutura — Docker no Amazon Linux
+
+### Configuração atual (produção)
+
+| Item | Detalhe |
+|---|---|
+| Servidor | Amazon Linux (EC2), 4GB RAM |
+| IP público | Muda a cada restart da instância EC2 |
+| Docker Compose | Versão antiga — usar `docker-compose` (com hífen) |
+| Containers | expense-mysql, expense-nginx, expense-php, expense-queue |
+| Volumes | app_data (aplicação), mysql_data (banco), storage_data (uploads) |
+| Metabase | Container separado na porta 3000 |
+
+### Dockerfile — lições aprendidas
+- Imagem base: `php:8.2-fpm-bullseye` (Debian, NÃO Alpine)
+- Pacotes: `libonig-dev`, Node.js via NodeSource setup_20.x
+- NÃO instalar `tokenizer` (já vem embutido)
+- npm: usar `--legacy-peer-deps`
+- Dockerfile cria Laravel do zero via `composer create-project` + `COPY . .`
+
+### Variáveis de ambiente críticas
+SESSION_DRIVER=file
+CACHE_STORE=file
+CACHE_DRIVER=file
+APP_DEBUG=false
+
+### Tabelas extras necessárias
+O Laravel 11 precisa de `cache`, `cache_locks` e `sessions` — criar manualmente se migrations não criarem.
+
+### Livewire login — problema resolvido
+- Breeze usa `#[Layout('layouts.guest')]`
+- Arquivo obrigatório: `resources/views/layouts/guest.blade.php` com `@vite` e `@livewireStyles/@livewireScripts`
+- Sem esse arquivo o form submete como GET
+
+### Comandos úteis
+```bash
+cd ~/expense-manager && docker-compose ps
+docker-compose logs -f php
+docker-compose exec php php artisan optimize:clear
+docker-compose exec php php artisan migrate --force
+docker-compose restart php nginx
+```
+
+### Atenção — RAM
+- 4GB é apertado. Instalar pacotes npm pode travar o SSH
+- Se cair: reiniciar pelo console AWS, containers voltam automaticamente
+- Claude Code instalado em: `/usr/bin/claude`
