@@ -1,4 +1,4 @@
-# CLAUDE.md — Gestão de Despesas
+# CLAUDE.md — Intranet Corporativa
 
 > Leia este arquivo inteiro antes de qualquer ação. Ele contém tudo que você precisa saber sobre o projeto.
 
@@ -6,10 +6,10 @@
 
 ## 📌 Visão Geral
 
-Sistema web de gestão de despesas corporativas construído em Laravel 11 + Livewire 3.
-Repositório: https://github.com/eblenkalil/expense-manager
+Este projeto está evoluindo de um **sistema de gestão de despesas** para uma **Intranet corporativa completa** para uma empresa de tecnologia com 40 colaboradores.
+O expense-manager original é um **módulo** dentro da Intranet.
 
-**Propósito:** Colaboradores cadastram despesas com recibos, agrupam em relatórios de entrega e submetem para reembolso. O administrativo confirma o pagamento.
+Repositório: https://github.com/eblenkalil/expense-manager
 
 ---
 
@@ -19,56 +19,136 @@ Repositório: https://github.com/eblenkalil/expense-manager
 |--------|-----------|
 | Framework | Laravel 11 |
 | Frontend reativo | Livewire 3 |
-| Estilo | Tailwind CSS (via Vite) |
-| Autenticação | Laravel Breeze (email + senha) |
+| Estilo | **Tailwind CSS via Vite** |
+| Componentes | **Blade Components customizados** |
+| Autenticação | Laravel Breeze + **Spatie Laravel Permission** |
 | PDF | barryvdh/laravel-dompdf |
 | E-mail | Laravel Mail + Queue (driver: database) |
-| Banco | MySQL 8 |
-| Hospedagem | Hostinger (PHP 8.2, SSH ativo) |
+| Banco principal | MySQL no **AWS RDS** (`intranet_db`) |
+| Banco SaaS | MySQL no **mesmo RDS** (`saas_db`) — somente leitura |
+| Infra | EC2 Amazon Linux + Docker Compose |
 | Agente de dev | Claude Code |
+
+---
+
+## 🎨 Design System — Tailwind
+
+Fonte principal: **Inter** (Google Fonts) ou **Plus Jakarta Sans**.
+Paleta base: `slate` para neutros, `indigo-600` como cor primária.
+
+### Componentes padrão
+
+**Botões:**
+```html
+<!-- Primário -->
+<button class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors">Ação</button>
+
+<!-- Secundário -->
+<button class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl border border-slate-200 transition-colors">Cancelar</button>
+
+<!-- Destrutivo -->
+<button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition-colors">Excluir</button>
+```
+
+**Cards:**
+```html
+<div class="bg-white rounded-2xl border border-slate-200">
+    <div class="px-6 py-4 border-b border-slate-100">
+        <h3 class="font-semibold text-slate-800">Título</h3>
+    </div>
+    <div class="p-6">conteúdo</div>
+</div>
+```
+
+**Badges de status:**
+```html
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">Pendente</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">Aprovado</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">Reprovado</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700">Pago</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">Rascunho</span>
+```
+
+**Inputs:**
+```html
+<input class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors">
+```
+
+**Ícones:** SVG inline do Heroicons (https://heroicons.com) — sempre `w-4 h-4` ou `w-5 h-5`.
+
+### Regras visuais
+- Bordas: sempre `rounded-xl` (12px) ou `rounded-2xl` (16px)
+- Sombras: evitar — usar bordas `border-slate-200`
+- Fundo da página: `bg-slate-50`
+- Cards e painéis: `bg-white`
+- Tipografia de destaque: `font-semibold text-slate-800`
+- Tipografia secundária: `text-sm text-slate-500`
 
 ---
 
 ## 👥 Perfis de usuário
 
-| Perfil | Permissões |
-|--------|-----------|
-| `collaborator` | Cadastra despesas, cria e entrega relatórios, vê os seus |
-| `admin` | Vê todos os relatórios, confirma pagamentos, gerencia usuários e categorias |
+Controle via **Spatie Laravel Permission** (roles + permissions):
 
-Controle feito pela coluna `role` na tabela `users`. Middleware: `AdminMiddleware`.
+| Perfil | Descrição |
+|--------|-----------|
+| `admin` | Acesso total |
+| `manager` | Gestor de área — aprovações, relatórios |
+| `support` | Atendimento — consulta de clientes |
+| `financial` | Financeiro — despesas, relatórios |
+| `employee` | Colaborador comum |
+
+> O campo `role` na tabela `users` (sistema antigo) será migrado para Spatie.
 
 ---
 
-## 🔄 Fluxo de status
+## 🔄 Módulos
 
-```
-DESPESA:
-  available → locked (vinculada a relatório) → archived (relatório pago)
+### ✅ Já existe no projeto
+- **Expenses** — despesas, relatórios, reembolsos (Livewire)
+- **Recruitment** — vagas, candidatos, entrevistas (Livewire)
+- **Multi-perfil** — admin, manager, hr, collaborator (campo `role` legado)
 
-RELATÓRIO:
-  draft → submitted (pendente pagamento) → paid (concluído)
-```
+### 🔄 Em desenvolvimento
+- **Core** — Spatie permissions, departments, audit_logs
+- **Clients** — consulta de clientes (SaaS DB + Bitrix24 CRM)
+- **Layout Intranet** — sidebar, dashboard, navegação por módulo
 
-Quando um relatório vai para `paid`, todas as suas despesas vão para `archived` e somem da lista principal.
+### 📋 Planejados (futuro)
+- Communications, Documents, Calendar, App Flutter
 
 ---
 
 ## 🗄️ Banco de dados
 
+### Banco principal — `intranet_db`
 ```
-users             id, name, email, password, role, notify_email
+users             id, name, email, password, department_id, position, phone,
+                  avatar, is_active, last_login_at, role (legado → Spatie)
+departments       id, name, slug, color, is_active
+audit_logs        id, user_id, action, entity_type, entity_id,
+                  old_values, new_values, ip_address, created_at
 categories        id, name, active
 expenses          id, user_id, category_id, expense_date, value, description,
-                  receipt_path, receipt_original_name, status
-reports           id, user_id, protocol_number, title, total_value, notes,
-                  status, payment_receipt_path, payment_receipt_name,
-                  submitted_at, paid_at
-report_expenses   id, report_id, expense_id  (pivot)
-jobs              tabela de fila para e-mails (queue:table)
+                  receipt_path, status
+reports           id, user_id, protocol_number, title, total_value, status...
+report_expenses   pivot report_id + expense_id
+jobs              fila de e-mails
 ```
 
-**Número de protocolo:** formato `REL-2025-0001`, gerado por `App\Services\ProtocolService`.
+### Banco SaaS — `saas_db` (somente leitura)
+- Conexão `saas` no `config/database.php`
+- Models em `App\Models\Saas\*` com `$connection = 'saas'`
+- Boot bloqueia create/update/delete automaticamente
+- Todo acesso registrado via `AuditService::log()`
+
+---
+
+## 🔗 Integrações
+
+- **Bitrix24 CRM** — via REST API (`BITRIX_URL`, `BITRIX_TOKEN`)
+- **SaaS próprio** — read-only via conexão `saas` no RDS
+- **Microsoft 365** — planejado, escopo a definir
 
 ---
 
@@ -77,156 +157,122 @@ jobs              tabela de fila para e-mails (queue:table)
 ```
 app/
   Livewire/
-    Dashboard.php               ← stats + gráfico Chart.js
-    Expenses/ExpenseList.php    ← lista + modal + upload + preview
-    Reports/
-      ReportList.php            ← lista com filtros
-      CreateReport.php          ← seleção de despesas + criação
-      ReportDetail.php          ← detalhes + entrega + pagamento
-    Admin/
-      AdminIndex.php            ← container de abas
-      AdminReports.php          ← todos os relatórios
-      AdminUsers.php            ← gerenciar perfis
-      AdminCategories.php       ← CRUD de categorias
-    Profile/ProfileSettings.php ← dados + senha + notificações
-  Mail/
-    ReportSubmittedMail.php     ← e-mail para admin quando entregue
-    ReportPaidMail.php          ← e-mail para colaborador quando pago
+    Dashboard.php
+    Expenses/ExpenseList.php
+    Reports/ReportList.php, CreateReport.php, ReportDetail.php
+    Admin/AdminIndex.php, AdminReports.php, AdminUsers.php, AdminCategories.php
+    Recruitment/         ← módulo de recrutamento
+    Profile/ProfileSettings.php
+  Models/
+    User.php             ← adicionar HasRoles (Spatie)
+    Department.php       ← novo
+    AuditLog.php         ← novo
+    Saas/Client.php      ← novo, read-only, connection='saas'
   Services/
-    ProtocolService.php         ← gera REL-YYYY-XXXX
-  Http/
-    Controllers/
-      ReportPdfController.php   ← download do PDF
-    Middleware/
-      AdminMiddleware.php       ← protege rotas admin
+    AuditService.php     ← novo — log de acessos sensíveis
+    ProtocolService.php  ← já existe — gera REL-YYYY-XXXX
+    BitrixService.php    ← novo — integração Bitrix24 CRM
+  Http/Middleware/
+    AdminMiddleware.php  ← já existe (migrar para Spatie gradualmente)
 
 resources/views/
-  layouts/app.blade.php         ← layout com sidebar
-  livewire/                     ← views de cada componente
-  reports/pdf.blade.php         ← template do PDF
-  mail/                         ← templates de e-mail
+  layouts/app.blade.php  ← layout principal com sidebar Tailwind
+  components/            ← Blade components reutilizáveis
+  livewire/              ← views dos componentes Livewire
+  reports/pdf.blade.php  ← template PDF
 
-routes/web.php                  ← todas as rotas
-bootstrap/app.php               ← registra middleware 'admin'
+routes/
+  web.php
+  modules/               ← novo — rotas por módulo
+    expenses.php
+    clients.php
+    admin.php
 ```
 
 ---
 
-## 🛣️ Rotas principais
-
-```
-GET  /dashboard          → Livewire\Dashboard
-GET  /expenses           → Livewire\Expenses\ExpenseList
-GET  /reports            → Livewire\Reports\ReportList
-GET  /reports/create     → Livewire\Reports\CreateReport
-GET  /reports/{report}   → Livewire\Reports\ReportDetail
-GET  /reports/{report}/pdf → ReportPdfController@download
-GET  /admin              → Livewire\Admin\AdminIndex  [middleware: admin]
-GET  /profile            → Livewire\Profile\ProfileSettings
-```
-
----
-
-## ⚙️ Padrões de código obrigatórios
+## ⚙️ Padrões de código
 
 - **Lógica fica nos Livewire components**, não em controllers
-- **Validação:** sempre usar atributo `#[Validate]` nos components
-- **E-mails:** sempre via Queue (`Mail::to()->queue()`), nunca `send()`
-- **Uploads:** usar `Storage::disk('public')`, nunca mover manualmente
-- **Roles:** verificar com `auth()->user()->isAdmin()`, nunca comparar string diretamente
-- **Formatação:** Laravel Pint (`./vendor/bin/pint`) após qualquer alteração PHP
-- **Assets:** rodar `npm run build` após alterar CSS/JS
-- **Migrations:** sempre criar nova migration, nunca editar migration existente
-- **Commits:** mensagens em português, formato `tipo: descrição`
-  - `feat:` nova funcionalidade
-  - `fix:` correção de bug
-  - `refactor:` refatoração sem mudança de comportamento
-  - `style:` apenas formatação
-  - `docs:` documentação
+- **Validação:** atributo `#[Validate]` nos components Livewire
+- **E-mails:** sempre `Mail::to()->queue()`, nunca `send()`
+- **Uploads:** `Storage::disk('public')`
+- **Permissões:** `@can` nas views, `$this->authorize()` nos controllers
+- **Auditoria:** `AuditService::log()` em todo acesso a dados de clientes
+- **Commits:** português, formato `tipo: descrição` (feat/fix/refactor/style/docs)
+- **Formatação:** `./vendor/bin/pint` após qualquer alteração PHP
+- **Assets:** `npm run build` após alterar CSS/JS
+- **Migrations:** sempre criar nova migration, nunca editar existente
 
 ---
 
-## 🧪 Testes
+## 🐳 Infraestrutura — Docker no Amazon Linux
 
+| Item | Detalhe |
+|------|---------|
+| Servidor | Amazon Linux (EC2) |
+| Docker Compose | Versão antiga — usar `docker-compose` (com hífen) |
+| Containers | expense-mysql, expense-nginx, expense-php, expense-queue |
+| Node/npm | Disponível no container php |
+
+### Comandos do dia a dia
 ```bash
-php artisan test                    # roda todos os testes
-php artisan test --filter NomeTest  # roda teste específico
-```
-
-Antes de commitar, sempre rodar `php artisan test` para garantir que nada quebrou.
-
----
-
-## 🚀 Comandos do dia a dia
-
-```bash
-# Desenvolvimento local
-php artisan serve                   # inicia servidor local
-npm run dev                         # inicia Vite (watch)
-php artisan queue:work              # processa fila de e-mails
+# Aplicação
+docker-compose exec php php artisan serve
+docker-compose exec php npm run dev
+docker-compose exec php npm run build
 
 # Banco
-php artisan migrate                 # roda migrations pendentes
-php artisan migrate:rollback        # desfaz última migration
-php artisan db:seed                 # popula categorias + admin
+docker-compose exec php php artisan migrate
+docker-compose exec php php artisan db:seed
 
-# Cache (sempre rodar após mudanças em produção)
-php artisan optimize:clear          # limpa todos os caches
-php artisan optimize                # recria caches
+# Cache (sempre rodar após mudanças)
+docker-compose exec php php artisan optimize:clear
+docker-compose exec php php artisan view:clear
+docker-compose exec php php artisan permission:cache-reset
+
+# Logs
+docker-compose logs -f php
+docker-compose exec php tail -f storage/logs/laravel.log
+
+# Testes
+docker-compose exec php php artisan test
 
 # Qualidade
-./vendor/bin/pint                   # formata código PHP
-npm run build                       # compila assets
-
-# Storage
-php artisan storage:link            # cria link simbólico (apenas uma vez)
-
-# Debug
-php artisan pail                    # logs em tempo real
-tail -f storage/logs/laravel.log    # logs do servidor
+docker-compose exec php ./vendor/bin/pint
 ```
 
 ---
 
-## 🌐 Variáveis de ambiente necessárias
+## 🌐 Variáveis de ambiente
 
 ```env
+APP_NAME="Intranet Corporativa"
 APP_URL=https://seudominio.com
-DB_DATABASE=expense_manager
-DB_USERNAME=...
-DB_PASSWORD=...
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.hostinger.com
-MAIL_PORT=587
-MAIL_USERNAME=noreply@seudominio.com
-MAIL_PASSWORD=...
+
+# Banco principal
+DB_CONNECTION=mysql
+DB_HOST=seu-rds.rds.amazonaws.com
+DB_DATABASE=intranet_db
+DB_USERNAME=intranet_user
+DB_PASSWORD=
+
+# Banco SaaS (somente leitura)
+SAAS_DB_HOST=seu-rds.rds.amazonaws.com
+SAAS_DB_DATABASE=saas_db
+SAAS_DB_USERNAME=saas_readonly_user
+SAAS_DB_PASSWORD=
+
+# Bitrix24
+BITRIX_URL=https://suaempresa.bitrix24.com.br/rest
+BITRIX_TOKEN=
+
+# Obrigatórias (Docker)
+SESSION_DRIVER=file
+CACHE_STORE=file
 QUEUE_CONNECTION=database
 FILESYSTEM_DISK=public
 ```
-
----
-
-## 🔐 GitHub Secrets necessários (para CI/CD)
-
-```
-HOSTINGER_HOST       → IP ou hostname SSH do Hostinger
-HOSTINGER_USER       → usuário SSH (ex: u123456789)
-HOSTINGER_SSH_KEY    → chave SSH privada (gerada com ssh-keygen)
-HOSTINGER_PATH       → caminho absoluto do projeto (ex: /home/u123456789/public_html/expense-manager)
-```
-
----
-
-## 🏠 Estrutura de branches
-
-```
-main        → produção (protegida, deploy automático via GitHub Actions)
-develop     → integração (testes rodam aqui)
-feat/*      → novas funcionalidades
-fix/*       → correções de bugs
-```
-
-Nunca commitar direto na `main`. Sempre abrir PR de `feat/*` ou `fix/*` → `develop` → `main`.
 
 ---
 
@@ -234,57 +280,8 @@ Nunca commitar direto na `main`. Sempre abrir PR de `feat/*` ou `fix/*` → `dev
 
 - [ ] `php artisan test` passando
 - [ ] `./vendor/bin/pint` rodado
-- [ ] Nenhum `dd()`, `dump()` ou `var_dump()` no código
+- [ ] Nenhum `dd()`, `dump()` no código
 - [ ] Migration criada se houve mudança no banco
 - [ ] `npm run build` rodado se houve mudança em CSS/JS
+- [ ] `php artisan view:clear` rodado
 - [ ] Commit com mensagem no padrão correto
-
----
-
-## 🐳 Infraestrutura — Docker no Amazon Linux
-
-### Configuração atual (produção)
-
-| Item | Detalhe |
-|---|---|
-| Servidor | Amazon Linux (EC2), 4GB RAM |
-| IP público | Muda a cada restart da instância EC2 |
-| Docker Compose | Versão antiga — usar `docker-compose` (com hífen) |
-| Containers | expense-mysql, expense-nginx, expense-php, expense-queue |
-| Volumes | app_data (aplicação), mysql_data (banco), storage_data (uploads) |
-| Metabase | Container separado na porta 3000 |
-
-### Dockerfile — lições aprendidas
-- Imagem base: `php:8.2-fpm-bullseye` (Debian, NÃO Alpine)
-- Pacotes: `libonig-dev`, Node.js via NodeSource setup_20.x
-- NÃO instalar `tokenizer` (já vem embutido)
-- npm: usar `--legacy-peer-deps`
-- Dockerfile cria Laravel do zero via `composer create-project` + `COPY . .`
-
-### Variáveis de ambiente críticas
-SESSION_DRIVER=file
-CACHE_STORE=file
-CACHE_DRIVER=file
-APP_DEBUG=false
-
-### Tabelas extras necessárias
-O Laravel 11 precisa de `cache`, `cache_locks` e `sessions` — criar manualmente se migrations não criarem.
-
-### Livewire login — problema resolvido
-- Breeze usa `#[Layout('layouts.guest')]`
-- Arquivo obrigatório: `resources/views/layouts/guest.blade.php` com `@vite` e `@livewireStyles/@livewireScripts`
-- Sem esse arquivo o form submete como GET
-
-### Comandos úteis
-```bash
-cd ~/expense-manager && docker-compose ps
-docker-compose logs -f php
-docker-compose exec php php artisan optimize:clear
-docker-compose exec php php artisan migrate --force
-docker-compose restart php nginx
-```
-
-### Atenção — RAM
-- 4GB é apertado. Instalar pacotes npm pode travar o SSH
-- Se cair: reiniciar pelo console AWS, containers voltam automaticamente
-- Claude Code instalado em: `/usr/bin/claude`
