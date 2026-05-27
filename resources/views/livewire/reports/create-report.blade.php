@@ -106,7 +106,7 @@
         </div>
         <button wire:click="save"
                 wire:loading.attr="disabled"
-                @if(empty($selectedIds) || !$title) disabled @endif
+                :disabled="$wire.selectedIds.length === 0 || !$wire.title.trim()"
                 class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-150 ease-out">
           <svg class="w-4 h-4" wire:loading.remove wire:target="save" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
