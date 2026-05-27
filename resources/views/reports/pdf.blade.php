@@ -201,6 +201,7 @@
 
   <div class="header">
     <div class="header-left">
+      <img src="{{ public_path('images/logo.png') }}" alt="Veloce Tech" style="max-width:120px;height:auto;margin-bottom:6px;display:block;">
       <h1>Relatório de Despesas</h1>
       <p>{{ $report->user->name }} &bull; {{ $report->user->email }}</p>
     </div>

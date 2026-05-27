@@ -17,8 +17,9 @@
   <aside class="w-60 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 left-0 z-30">
 
     <div class="px-6 py-5 border-b border-slate-100">
-      <p class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-0.5">Sistema</p>
-      <h1 class="text-base font-semibold text-slate-900 leading-tight">Gestão de<br>Despesas</h1>
+      <a href="{{ route('dashboard') }}">
+        <img src="{{ asset('images/logo.png') }}" alt="Veloce Tech" class="h-8 w-auto">
+      </a>
     </div>
 
     <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
