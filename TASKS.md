@@ -395,6 +395,222 @@ Aumentar a largura mínima do select para min-w-48 ou w-56.
 Garantir que o texto "Todas as empresas" caiba em uma única linha sem truncar.
 
 ---
+
+## 15. Migração para Metronic v9.4.13 (Tailwind CSS)
+
+Os assets do Metronic já foram commitados em `public/vendor/metronic/`:
+- `public/vendor/metronic/css/styles.css` — CSS principal compilado (456KB)
+- `public/vendor/metronic/css/core.bundle.css` — CSS de componentes (56KB)
+- `public/vendor/metronic/js/core.bundle.js` — JS de componentes (832KB)
+- `public/vendor/metronic/vendors/keenicons/styles.bundle.css` — ícones CSS
+
+### 15a. Setup inicial — substituir assets no layout
+
+Localizar o layout principal (resources/views/layouts/app.blade.php).
+Substituir os links de CSS e JS do Vite pelos assets do Metronic:
+
+```html
+<!-- No <head>, substituir @vite por: -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ asset('vendor/metronic/vendors/keenicons/styles.bundle.css') }}"/>
+<link rel="stylesheet" href="{{ asset('vendor/metronic/css/styles.css') }}"/>
+
+<!-- Antes do </body>, substituir scripts Vite por: -->
+<script src="{{ asset('vendor/metronic/js/core.bundle.js') }}"></script>
+```
+
+Adicionar no `<html>`:
+```html
+<html class="h-full" data-kt-theme="true" data-kt-theme-mode="light" lang="pt-BR">
+```
+
+Adicionar no `<body>`:
+```html
+<body class="antialiased flex h-full text-base text-foreground bg-background demo1 kt-sidebar-fixed kt-header-fixed">
+```
+
+### 15b. Reescrever layout principal (sidebar + header)
+
+Reescrever o layout app.blade.php usando a estrutura do Metronic layout-1.
+Referência: `public/vendor/metronic/` — usar as classes kt-sidebar, kt-header, kt-menu.
+
+**Sidebar:**
+```html
+<div class="kt-sidebar bg-background border-e border-e-border fixed top-0 bottom-0 z-20 hidden lg:flex flex-col items-stretch shrink-0 [--kt-drawer-enable:true] lg:[--kt-drawer-enable:false]"
+     data-kt-drawer="true" data-kt-drawer-class="kt-drawer kt-drawer-start top-0 bottom-0" id="sidebar">
+```
+
+Itens de menu na sidebar:
+```html
+<div class="kt-menu-item">
+  <a class="kt-menu-link border border-transparent items-center grow kt-menu-item-active:bg-accent/60 kt-menu-item-active:rounded-lg hover:bg-accent/60 hover:rounded-lg gap-[10px] ps-[10px] pe-[10px] py-[8px]" href="...">
+    <span class="kt-menu-icon text-muted-foreground w-[20px]">
+      <i class="ki-filled ki-home text-lg"></i>
+    </span>
+    <span class="kt-menu-title text-sm font-medium text-foreground kt-menu-item-active:text-primary kt-menu-link-hover:!text-primary">
+      Dashboard
+    </span>
+  </a>
+</div>
+```
+
+**Header:**
+```html
+<header class="kt-header bg-background border-b border-b-border h-[--kt-header-height] fixed top-0 start-0 end-0 z-10 flex items-stretch shrink-0" id="kt_header">
+```
+
+Logo no sidebar:
+```html
+<img src="{{ asset('images/logo.png') }}" alt="Veloce Tech" class="h-8 w-auto"/>
+```
+
+Mapa de ícones Keen para cada item de menu:
+- Dashboard: `ki-filled ki-element-11`
+- Despesas: `ki-filled ki-bill`
+- Relatórios: `ki-filled ki-document`
+- Painel Admin: `ki-filled ki-setting-2`
+- Recrutamento: `ki-filled ki-people`
+- Usuários: `ki-filled ki-profile-circle`
+
+### 15c. Reescrever dashboard (resources/views/livewire/dashboard.blade.php)
+
+Usar componentes Metronic:
+
+**Cards de stats:**
+```html
+<div class="card">
+  <div class="card-body flex flex-col gap-2 p-5">
+    <span class="text-sm font-medium text-muted-foreground">Despesas disponíveis</span>
+    <span class="text-2xl font-semibold text-foreground">{{ $stats['available_expenses'] }}</span>
+    <span class="text-xs text-muted-foreground">prontas para agrupar</span>
+  </div>
+</div>
+```
+
+**Listas recentes — card:**
+```html
+<div class="card">
+  <div class="card-header flex items-center justify-between">
+    <h3 class="card-title">Últimas despesas</h3>
+    <a href="..." class="btn btn-sm btn-ghost">Ver todas</a>
+  </div>
+  <div class="card-body p-0">
+    <!-- itens -->
+  </div>
+</div>
+```
+
+### 15d. Reescrever telas de despesas
+
+Aplicar classes Metronic em:
+- `resources/views/livewire/expenses/` — todos os arquivos
+
+**Tabelas:**
+```html
+<div class="card">
+  <div class="card-header"><h3 class="card-title">Minhas Despesas</h3></div>
+  <div class="card-body p-0">
+    <table class="table">
+      <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Status</th></tr></thead>
+      <tbody>...</tbody>
+    </table>
+  </div>
+</div>
+```
+
+**Botões:**
+```html
+<!-- Primário -->
+<button class="btn btn-primary">Nova Despesa</button>
+<!-- Secundário -->
+<button class="btn btn-secondary">Cancelar</button>
+<!-- Danger -->
+<button class="btn btn-danger">Excluir</button>
+<!-- Ghost -->
+<button class="btn btn-ghost btn-sm">Ver</button>
+```
+
+**Inputs:**
+```html
+<input class="input" type="text" placeholder="Descrição"/>
+<select class="select">...</select>
+<textarea class="textarea"></textarea>
+```
+
+**Badges de status:**
+```html
+<!-- available -->  <span class="badge badge-success badge-outline">Disponível</span>
+<!-- locked -->     <span class="badge badge-warning badge-outline">Vinculada</span>
+<!-- archived -->   <span class="badge badge-primary badge-outline">Arquivada</span>
+<!-- submitted -->  <span class="badge badge-info badge-outline">Submetido</span>
+<!-- paid -->       <span class="badge badge-success">Pago</span>
+<!-- rejected -->   <span class="badge badge-danger badge-outline">Reprovado</span>
+<!-- pending -->    <span class="badge badge-warning badge-outline">Aguardando</span>
+<!-- interview -->  <span class="badge badge-info badge-outline">Entrevista</span>
+<!-- hired -->      <span class="badge badge-success">Contratado</span>
+<!-- discarded -->  <span class="badge badge-secondary">Descartado</span>
+```
+
+**Modais:**
+```html
+<div class="modal" data-modal="true" id="modal_nome">
+  <div class="modal-content max-w-lg">
+    <div class="modal-header"><h3 class="modal-title">Título</h3></div>
+    <div class="modal-body">...</div>
+    <div class="modal-footer justify-end gap-2">
+      <button class="btn btn-secondary" data-modal-dismiss="true">Cancelar</button>
+      <button class="btn btn-primary">Confirmar</button>
+    </div>
+  </div>
+</div>
+```
+
+### 15e. Reescrever telas de relatórios
+
+Aplicar classes Metronic em `resources/views/livewire/reports/` — todos os arquivos.
+Seguir o mesmo padrão de cards, tabelas, botões e modais da tarefa 15d.
+
+### 15f. Reescrever painel admin
+
+Aplicar classes Metronic em `resources/views/livewire/admin/` — todos os arquivos.
+
+### 15g. Reescrever módulo de recrutamento
+
+Aplicar classes Metronic em `resources/views/livewire/hr/` e `resources/views/hr/` — todos os arquivos.
+Na linha do tempo do candidato, usar o componente de timeline do Metronic:
+```html
+<div class="timeline">
+  <div class="timeline-item">
+    <div class="timeline-line"></div>
+    <div class="timeline-icon"><i class="ki-filled ki-check-circle text-success text-lg"></i></div>
+    <div class="timeline-content">
+      <p class="text-sm font-medium text-foreground">Status alterado para Entrevista</p>
+      <p class="text-xs text-muted-foreground">por João — 26/05/2026</p>
+    </div>
+  </div>
+</div>
+```
+
+### 15h. Reescrever telas de usuários e autenticação
+
+Aplicar classes Metronic nas telas de login, cadastro e gestão de usuários.
+
+### 15i. Reescrever página pública de candidatura
+
+Manter o layout split (tarefa 12) mas substituir classes Tailwind puras por classes Metronic onde aplicável.
+A coluna esquerda mantém o gradiente customizado pois é uma página pública sem o tema Metronic.
+
+### Observações importantes para o Claude Code:
+
+- Após cada subtarefa, rodar `php artisan view:clear`
+- NÃO rodar `npm run build` — os assets Metronic são servidos diretamente de `public/vendor/`
+- Testar no browser após cada subtarefa para garantir que não quebrou
+- Os ícones usam a classe `ki-filled` para ícones sólidos e `ki-outline` para ícones de linha
+- Referência completa de ícones: https://keenthemes.com/metronic/tailwind/docs/base/keenicons
+- Componentes KTUI: `kt-btn`, `kt-card`, `kt-menu`, `kt-drawer`, `kt-modal`, `kt-tooltip`, `kt-badge`
+- Classes CSS semânticas: `card`, `btn`, `input`, `select`, `textarea`, `table`, `badge`, `modal`, `timeline`
+
+---
 ## Instruções gerais para o Claude Code
 
 - Ler o UI_STYLE_GUIDE.md antes de qualquer alteração visual
