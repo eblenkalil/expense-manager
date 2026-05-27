@@ -396,226 +396,217 @@ Garantir que o texto "Todas as empresas" caiba em uma única linha sem truncar.
 
 ---
 
-## 15. Migração para Metronic v9.4.13 (Tailwind CSS)
-
-Os assets do Metronic já foram commitados em `public/vendor/metronic/`:
-- `public/vendor/metronic/css/styles.css` — CSS principal compilado (456KB)
-- `public/vendor/metronic/css/core.bundle.css` — CSS de componentes (56KB)
-- `public/vendor/metronic/js/core.bundle.js` — JS de componentes (832KB)
-- `public/vendor/metronic/vendors/keenicons/styles.bundle.css` — ícones CSS
-
-### 15a. Setup inicial — substituir assets no layout
-
-Localizar o layout principal (resources/views/layouts/app.blade.php).
-Substituir os links de CSS e JS do Vite pelos assets do Metronic:
-
-```html
-<!-- No <head>, substituir @vite por: -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="{{ asset('vendor/metronic/vendors/keenicons/styles.bundle.css') }}"/>
-<link rel="stylesheet" href="{{ asset('vendor/metronic/css/styles.css') }}"/>
-
-<!-- Antes do </body>, substituir scripts Vite por: -->
-<script src="{{ asset('vendor/metronic/js/core.bundle.js') }}"></script>
-```
-
-Adicionar no `<html>`:
-```html
-<html class="h-full" data-kt-theme="true" data-kt-theme-mode="light" lang="pt-BR">
-```
-
-Adicionar no `<body>`:
-```html
-<body class="antialiased flex h-full text-base text-foreground bg-background demo1 kt-sidebar-fixed kt-header-fixed">
-```
-
-### 15b. Reescrever layout principal (sidebar + header)
-
-Reescrever o layout app.blade.php usando a estrutura do Metronic layout-1.
-Referência: `public/vendor/metronic/` — usar as classes kt-sidebar, kt-header, kt-menu.
-
-**Sidebar:**
-```html
-<div class="kt-sidebar bg-background border-e border-e-border fixed top-0 bottom-0 z-20 hidden lg:flex flex-col items-stretch shrink-0 [--kt-drawer-enable:true] lg:[--kt-drawer-enable:false]"
-     data-kt-drawer="true" data-kt-drawer-class="kt-drawer kt-drawer-start top-0 bottom-0" id="sidebar">
-```
-
-Itens de menu na sidebar:
-```html
-<div class="kt-menu-item">
-  <a class="kt-menu-link border border-transparent items-center grow kt-menu-item-active:bg-accent/60 kt-menu-item-active:rounded-lg hover:bg-accent/60 hover:rounded-lg gap-[10px] ps-[10px] pe-[10px] py-[8px]" href="...">
-    <span class="kt-menu-icon text-muted-foreground w-[20px]">
-      <i class="ki-filled ki-home text-lg"></i>
-    </span>
-    <span class="kt-menu-title text-sm font-medium text-foreground kt-menu-item-active:text-primary kt-menu-link-hover:!text-primary">
-      Dashboard
-    </span>
-  </a>
-</div>
-```
-
-**Header:**
-```html
-<header class="kt-header bg-background border-b border-b-border h-[--kt-header-height] fixed top-0 start-0 end-0 z-10 flex items-stretch shrink-0" id="kt_header">
-```
-
-Logo no sidebar:
-```html
-<img src="{{ asset('images/logo.png') }}" alt="Veloce Tech" class="h-8 w-auto"/>
-```
-
-Mapa de ícones Keen para cada item de menu:
-- Dashboard: `ki-filled ki-element-11`
-- Despesas: `ki-filled ki-bill`
-- Relatórios: `ki-filled ki-document`
-- Painel Admin: `ki-filled ki-setting-2`
-- Recrutamento: `ki-filled ki-people`
-- Usuários: `ki-filled ki-profile-circle`
-
-### 15c. Reescrever dashboard (resources/views/livewire/dashboard.blade.php)
-
-Usar componentes Metronic:
-
-**Cards de stats:**
-```html
-<div class="card">
-  <div class="card-body flex flex-col gap-2 p-5">
-    <span class="text-sm font-medium text-muted-foreground">Despesas disponíveis</span>
-    <span class="text-2xl font-semibold text-foreground">{{ $stats['available_expenses'] }}</span>
-    <span class="text-xs text-muted-foreground">prontas para agrupar</span>
-  </div>
-</div>
-```
-
-**Listas recentes — card:**
-```html
-<div class="card">
-  <div class="card-header flex items-center justify-between">
-    <h3 class="card-title">Últimas despesas</h3>
-    <a href="..." class="btn btn-sm btn-ghost">Ver todas</a>
-  </div>
-  <div class="card-body p-0">
-    <!-- itens -->
-  </div>
-</div>
-```
-
-### 15d. Reescrever telas de despesas
-
-Aplicar classes Metronic em:
-- `resources/views/livewire/expenses/` — todos os arquivos
-
-**Tabelas:**
-```html
-<div class="card">
-  <div class="card-header"><h3 class="card-title">Minhas Despesas</h3></div>
-  <div class="card-body p-0">
-    <table class="table">
-      <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Status</th></tr></thead>
-      <tbody>...</tbody>
-    </table>
-  </div>
-</div>
-```
-
-**Botões:**
-```html
-<!-- Primário -->
-<button class="btn btn-primary">Nova Despesa</button>
-<!-- Secundário -->
-<button class="btn btn-secondary">Cancelar</button>
-<!-- Danger -->
-<button class="btn btn-danger">Excluir</button>
-<!-- Ghost -->
-<button class="btn btn-ghost btn-sm">Ver</button>
-```
-
-**Inputs:**
-```html
-<input class="input" type="text" placeholder="Descrição"/>
-<select class="select">...</select>
-<textarea class="textarea"></textarea>
-```
-
-**Badges de status:**
-```html
-<!-- available -->  <span class="badge badge-success badge-outline">Disponível</span>
-<!-- locked -->     <span class="badge badge-warning badge-outline">Vinculada</span>
-<!-- archived -->   <span class="badge badge-primary badge-outline">Arquivada</span>
-<!-- submitted -->  <span class="badge badge-info badge-outline">Submetido</span>
-<!-- paid -->       <span class="badge badge-success">Pago</span>
-<!-- rejected -->   <span class="badge badge-danger badge-outline">Reprovado</span>
-<!-- pending -->    <span class="badge badge-warning badge-outline">Aguardando</span>
-<!-- interview -->  <span class="badge badge-info badge-outline">Entrevista</span>
-<!-- hired -->      <span class="badge badge-success">Contratado</span>
-<!-- discarded -->  <span class="badge badge-secondary">Descartado</span>
-```
-
-**Modais:**
-```html
-<div class="modal" data-modal="true" id="modal_nome">
-  <div class="modal-content max-w-lg">
-    <div class="modal-header"><h3 class="modal-title">Título</h3></div>
-    <div class="modal-body">...</div>
-    <div class="modal-footer justify-end gap-2">
-      <button class="btn btn-secondary" data-modal-dismiss="true">Cancelar</button>
-      <button class="btn btn-primary">Confirmar</button>
-    </div>
-  </div>
-</div>
-```
-
-### 15e. Reescrever telas de relatórios
-
-Aplicar classes Metronic em `resources/views/livewire/reports/` — todos os arquivos.
-Seguir o mesmo padrão de cards, tabelas, botões e modais da tarefa 15d.
-
-### 15f. Reescrever painel admin
-
-Aplicar classes Metronic em `resources/views/livewire/admin/` — todos os arquivos.
-
-### 15g. Reescrever módulo de recrutamento
-
-Aplicar classes Metronic em `resources/views/livewire/hr/` e `resources/views/hr/` — todos os arquivos.
-Na linha do tempo do candidato, usar o componente de timeline do Metronic:
-```html
-<div class="timeline">
-  <div class="timeline-item">
-    <div class="timeline-line"></div>
-    <div class="timeline-icon"><i class="ki-filled ki-check-circle text-success text-lg"></i></div>
-    <div class="timeline-content">
-      <p class="text-sm font-medium text-foreground">Status alterado para Entrevista</p>
-      <p class="text-xs text-muted-foreground">por João — 26/05/2026</p>
-    </div>
-  </div>
-</div>
-```
-
-### 15h. Reescrever telas de usuários e autenticação
-
-Aplicar classes Metronic nas telas de login, cadastro e gestão de usuários.
-
-### 15i. Reescrever página pública de candidatura
-
-Manter o layout split (tarefa 12) mas substituir classes Tailwind puras por classes Metronic onde aplicável.
-A coluna esquerda mantém o gradiente customizado pois é uma página pública sem o tema Metronic.
-
-### Observações importantes para o Claude Code:
-
-- Após cada subtarefa, rodar `php artisan view:clear`
-- NÃO rodar `npm run build` — os assets Metronic são servidos diretamente de `public/vendor/`
-- Testar no browser após cada subtarefa para garantir que não quebrou
-- Os ícones usam a classe `ki-filled` para ícones sólidos e `ki-outline` para ícones de linha
-- Referência completa de ícones: https://keenthemes.com/metronic/tailwind/docs/base/keenicons
-- Componentes KTUI: `kt-btn`, `kt-card`, `kt-menu`, `kt-drawer`, `kt-modal`, `kt-tooltip`, `kt-badge`
-- Classes CSS semânticas: `card`, `btn`, `input`, `select`, `textarea`, `table`, `badge`, `modal`, `timeline`
 
 ---
+
+## 16. Layout da Intranet — Sidebar e Dashboard em Tailwind
+
+Reescrever o layout principal da aplicação com identidade de Intranet corporativa.
+Usar Tailwind CSS puro com Blade Components. Sem frameworks externos.
+
+### 16a. Atualizar layout principal (app.blade.php)
+
+Reescrever `resources/views/layouts/app.blade.php` com:
+- Sidebar fixo à esquerda (`w-64`), colapsável para `w-16` com Alpine.js
+- Fundo do sidebar: `bg-slate-900`
+- Topbar: `bg-white`, `border-b border-slate-200`, altura `h-16`
+- Área de conteúdo: `bg-slate-50`, padding `p-6`
+- Fonte: Inter ou Plus Jakarta Sans via Google Fonts
+- Flash messages com auto-dismiss via Alpine.js
+- Responsivo: sidebar vira drawer no mobile
+
+### 16b. Criar Blade Component: sidebar
+
+Criar `resources/views/components/sidebar.blade.php`:
+- Logo da empresa no topo
+- Itens de menu com ícones SVG Heroicons
+- Itens visíveis por permissão usando `@can`
+- Seção "Administração" separada visível apenas para admin/manager
+- Footer com nome, e-mail do usuário e botão de sair
+- Estado ativo destacado: `bg-indigo-600 text-white`
+- Estado hover: `hover:bg-slate-800`
+
+### 16c. Criar Blade Component: topbar
+
+Criar `resources/views/components/topbar.blade.php`:
+- Título da página atual
+- Busca rápida (campo com Alpine.js)
+- Ícone de notificações com badge
+- Avatar com dropdown: perfil e sair
+
+### 16d. Criar Blade Component: stats-card
+
+Criar `resources/views/components/stats-card.blade.php` com props:
+- `label`, `value`, `icon` (SVG), `color` (indigo/emerald/amber/sky), `trend`
+
+### 16e. Atualizar Dashboard
+
+Atualizar `resources/views/livewire/dashboard.blade.php`:
+- Usar novos Blade Components (stats-card)
+- Cards de stats visíveis por `@can`
+- Tabela de despesas recentes com badges de status Tailwind
+- Seção de acesso rápido com botões por permissão
+- Usar apenas classes Tailwind — sem classes customizadas externas
+
+Após cada subtarefa: `docker-compose exec php php artisan view:clear`
+
+---
+
+## 17. Fundação da Intranet — Spatie, Departamentos e Auditoria
+
+### 17a. Instalar Spatie Laravel Permission
+
+```bash
+docker-compose exec php composer require spatie/laravel-permission
+docker-compose exec php php artisan vendor:publish --provider="Spatie\Permission\PermissionRegistrar" --tag="permission-migrations"
+docker-compose exec php php artisan vendor:publish --provider="Spatie\Permission\PermissionRegistrar" --tag="permission-config"
+docker-compose exec php php artisan migrate
+```
+
+Adicionar `use Spatie\Permission\Traits\HasRoles;` e `use HasRoles;` no model `User`.
+
+### 17b. Migration: adicionar campos à tabela users
+
+Nova migration com:
+- `department_id` (foreignId nullable, constrained departments, nullOnDelete)
+- `position` (string nullable) — cargo
+- `phone` (string 20 nullable)
+- `avatar` (string nullable)
+- `is_active` (boolean default true)
+- `last_login_at` (timestamp nullable)
+
+Rodar após criar.
+
+### 17c. Migration: departments
+
+Campos: `id`, `name`, `slug` (unique), `description` (nullable), `color` (string 7, default '#6366f1'), `is_active` (boolean default true), `timestamps`.
+
+### 17d. Migration: audit_logs
+
+Campos: `id`, `user_id` (foreignId nullable nullOnDelete), `action`, `description` (nullable), `entity_type` (nullable), `entity_id` (nullable), `old_values` (json nullable), `new_values` (json nullable), `ip_address` (string 45), `user_agent` (nullable), `url` (nullable), `method` (string 10 nullable), `created_at` (timestamp useCurrent) — sem `updated_at`.
+Índices em: user_id, [entity_type, entity_id], action, created_at.
+
+### 17e. Criar Models
+
+**app/Models/Department.php** — fillable, cast is_active como boolean, hasMany users.
+
+**app/Models/AuditLog.php** — `$timestamps = false`, cast old/new_values como array, belongsTo user withTrashed.
+
+**app/Models/Saas/Client.php** — `$connection = 'saas'`, `$table = 'clients'`, `$timestamps = false`, boot() com `RuntimeException` em creating/updating/deleting.
+
+### 17f. RolesAndPermissionsSeeder
+
+Criar `database/seeders/RolesAndPermissionsSeeder.php`.
+
+Permissões: `clients.view`, `clients.export`, `expenses.view`, `expenses.create`, `expenses.edit`, `expenses.delete`, `expenses.approve`, `expenses.admin`, `users.view`, `users.create`, `users.edit`, `users.delete`, `reports.view`, `reports.export`, `announcements.view`, `announcements.create`.
+
+Perfis:
+- `admin` → todas
+- `manager` → clients.view, expenses.view, expenses.approve, reports.view, reports.export, announcements.view
+- `support` → clients.view, announcements.view
+- `financial` → expenses.view, expenses.approve, expenses.admin, reports.view, reports.export, announcements.view
+- `employee` → expenses.view, expenses.create, expenses.edit, announcements.view
+
+Criar usuário admin: `admin@intranet.com` / `password`, assignRole('admin').
+Rodar: `docker-compose exec php php artisan db:seed --class=RolesAndPermissionsSeeder`
+
+### 17g. AuditService
+
+Criar `app/Services/AuditService.php` com método estático `log(action, description, entityType, entityId, oldValues, newValues)`.
+Captura automaticamente: user_id, ip, user_agent, url, method do request atual.
+
+### 17h. Estrutura de rotas modular
+
+Criar `routes/modules/` com `admin.php`, `clients.php`, `expenses.php`.
+Atualizar `routes/web.php` com require dos três arquivos.
+
+### 17i. Verificação final
+
+```bash
+docker-compose exec php php artisan optimize:clear
+docker-compose exec php php artisan permission:cache-reset
+docker-compose exec php php artisan test
+```
+
+---
+
+## 18. Conexão Read-Only ao Banco SaaS
+
+### 18a. Adicionar conexão 'saas' em config/database.php
+
+```php
+'saas' => [
+    'driver'    => 'mysql',
+    'host'      => env('SAAS_DB_HOST', '127.0.0.1'),
+    'port'      => env('SAAS_DB_PORT', '3306'),
+    'database'  => env('SAAS_DB_DATABASE'),
+    'username'  => env('SAAS_DB_USERNAME'),
+    'password'  => env('SAAS_DB_PASSWORD'),
+    'charset'   => 'utf8mb4',
+    'collation' => 'utf8mb4_unicode_ci',
+    'prefix'    => '',
+    'strict'    => true,
+],
+```
+
+### 18b. Adicionar ao .env.example (sem valores)
+
+```
+SAAS_DB_HOST=
+SAAS_DB_PORT=3306
+SAAS_DB_DATABASE=
+SAAS_DB_USERNAME=
+SAAS_DB_PASSWORD=
+BITRIX_URL=
+BITRIX_TOKEN=
+```
+
+### 18c. Testar conexão
+
+```bash
+docker-compose exec php php artisan tinker --execute="try { DB::connection('saas')->getPdo(); echo 'OK'; } catch(\Exception \$e) { echo \$e->getMessage(); }"
+```
+
+---
+
+## 19. Módulo de Clientes — Consulta com Auditoria
+
+Implementar tela de consulta de clientes da base SaaS com log de auditoria obrigatório.
+
+### 19a. ClientController
+
+Criar `app/Http/Controllers/Clients/ClientController.php`:
+- `index()` — listagem com busca por nome/e-mail/CNPJ
+- `show($id)` — detalhes do cliente
+- Ambos com `$this->authorize('clients.view')` e `AuditService::log()`
+
+### 19b. Views de clientes
+
+Criar `resources/views/clients/index.blade.php` e `show.blade.php`:
+- Usar layout e design system Tailwind definidos na task 16
+- Tabela com paginação, campo de busca
+- Badges de status do cliente
+- Sem botões de edição/exclusão (somente leitura)
+
+### 19c. Verificação
+
+Logar como usuário com `clients.view`, acessar `/clients` e confirmar que:
+- Dados aparecem corretamente
+- Audit log registra o acesso
+- Usuário sem permissão recebe 403
+
+---
+
 ## Instruções gerais para o Claude Code
 
-- Ler o UI_STYLE_GUIDE.md antes de qualquer alteração visual
-- Nunca criar colunas ad hoc para campos dinâmicos
-- Sempre limpar cache após alterações em views: php artisan view:clear
-- Sempre rodar migrations após alterações no banco: php artisan migrate
+- Sempre usar `docker-compose exec php` para rodar comandos no container
+- Nunca editar migrations já existentes — sempre criar nova migration
+- Sempre limpar cache após alterações em views: `php artisan view:clear`
+- Sempre rodar migrations após alterações no banco: `php artisan migrate`
+- Usar apenas Tailwind CSS — sem frameworks externos de UI
+- Ícones: SVG inline do Heroicons (heroicons.com) — tamanhos `w-4 h-4` ou `w-5 h-5`
+- Sempre verificar permissões com @can nas views e authorize() nos controllers
+- Registrar AuditService::log() em todo acesso a dados de clientes
 - Commitar cada tarefa separadamente com mensagem descritiva em português
-- Testar o fluxo completo de cada funcionalidade antes de passar para a próxima
+- Testar o fluxo completo antes de passar para a próxima tarefa
+- Rodar `php artisan test` antes de qualquer commit
