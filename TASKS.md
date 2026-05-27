@@ -262,6 +262,65 @@ O logo da Veloce Tech foi adicionado ao repositório em `public/images/logo.png`
 - O logo deve aparecer em todas as páginas do PDF se o relatório tiver múltiplas páginas
 
 ---
+
+## 12. Página pública de candidatura — design corporativo
+
+Redesenhar completamente a view da rota pública /vagas/{public_token} para ter uma aparência corporativa e profissional.
+
+### Layout geral:
+- Tela dividida em duas colunas em desktop (lg:grid-cols-2), empilhada em mobile
+- Altura mínima de tela cheia: min-h-screen
+- Sem header/navbar do sistema interno — página totalmente independente
+
+### Coluna esquerda (painel da empresa):
+- Fundo: gradiente de slate-900 para blue-900 (`bg-gradient-to-br from-slate-900 to-blue-900`)
+- Centralizado verticalmente com flex
+- Logo da empresa no topo: `<img src="{{ asset('images/logo.png') }}" class="h-12 w-auto brightness-0 invert">` (logo branco via invert)
+- Abaixo do logo: nome da vaga em texto grande branco (`text-3xl font-semibold text-white`)
+- Cargo em texto azul claro (`text-blue-300 text-lg`)
+- Linha divisória sutil (`border-t border-white/10 my-6`)
+- Descrição da vaga em texto branco/70 (`text-white/70 text-sm leading-relaxed`)
+- Rodapé da coluna: texto pequeno com o nome da empresa (`text-white/40 text-xs`)
+- Padding generoso: p-12 em desktop, p-8 em mobile
+
+### Coluna direita (formulário):
+- Fundo: bg-white
+- Centralizado verticalmente com flex
+- Padding: p-10 em desktop, p-6 em mobile
+- Título do formulário: "Sua candidatura" em text-2xl font-semibold text-slate-900
+- Subtítulo: "Preencha os dados abaixo para se candidatar" em text-sm text-slate-500
+- Espaçamento entre título e formulário: mt-8
+
+### Campos do formulário (seguir UI_STYLE_GUIDE.md para inputs):
+Todos os inputs: `h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20`
+Labels: `text-sm font-medium text-slate-700`
+Campos obrigatórios marcados com asterisco vermelho
+
+Ordem dos campos:
+1. Nome completo* 
+2. E-mail* 
+3. Telefone* 
+4. LinkedIn (opcional) — com placeholder "https://linkedin.com/in/seu-perfil"
+5. Pretensão salarial (opcional) — campo numérico com prefixo "R$"
+6. Currículo em PDF* — input file estilizado com área de drop visual (border-dashed border-2 border-slate-300 rounded-lg p-6 text-center)
+7. Mensagem / comentário (opcional) — textarea de 3 linhas com placeholder "Conte um pouco sobre você ou por que tem interesse nesta vaga"
+
+### Botão de envio:
+- Largura total: w-full
+- Estilo primário do UI_STYLE_GUIDE: bg-blue-600 hover:bg-blue-700
+- Texto: "Enviar candidatura"
+- Com estado de loading via wire:loading
+
+### Estados especiais:
+- Se a vaga estiver fechada (status=closed): mostrar apenas a coluna esquerda com mensagem centralizada "Esta vaga não está aceitando candidaturas no momento" em texto branco, sem formulário
+- Após envio com sucesso: substituir o formulário por mensagem de confirmação com ícone de check verde, texto "Candidatura enviada com sucesso!" e subtexto "Entraremos em contato em breve."
+
+### Responsividade mobile:
+- Em mobile: coluna esquerda compacta (py-8 px-6) com logo + nome da vaga apenas (sem descrição completa)
+- Coluna direita ocupa o restante da tela
+- Sem scroll horizontal
+
+
 ## Instruções gerais para o Claude Code
 
 - Ler o UI_STYLE_GUIDE.md antes de qualquer alteração visual
