@@ -10,7 +10,7 @@ class Job extends Model
     protected $table = 'job_postings';
 
     protected $fillable = [
-        'title', 'position_id', 'description', 'status', 'public_token', 'created_by',
+        'title', 'company', 'position_id', 'description', 'status', 'public_token', 'created_by',
     ];
 
     protected static function booted(): void

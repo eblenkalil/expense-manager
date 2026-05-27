@@ -19,8 +19,13 @@ class JobList extends Component
 
     public string $positionFilter = '';
 
+    public string $companyFilter = '';
+
     #[Validate('required|string|max:255')]
     public string $title = '';
+
+    #[Validate('required|string|in:tri_rs,veloce_tech,tche_ofertas')]
+    public string $company = '';
 
     #[Validate('required|integer|exists:positions,id')]
     public ?int $position_id = null;
@@ -32,6 +37,7 @@ class JobList extends Component
     {
         $this->editingId = null;
         $this->title = '';
+        $this->company = '';
         $this->position_id = null;
         $this->description = '';
         $this->resetValidation();
@@ -43,6 +49,7 @@ class JobList extends Component
         $job = Job::findOrFail($jobId);
         $this->editingId = $jobId;
         $this->title = $job->title;
+        $this->company = $job->company ?? '';
         $this->position_id = $job->position_id;
         $this->description = $job->description ?? '';
         $this->resetValidation();
@@ -62,6 +69,7 @@ class JobList extends Component
             $job = Job::findOrFail($this->editingId);
             $job->update([
                 'title' => $this->title,
+                'company' => $this->company,
                 'position_id' => $this->position_id,
                 'description' => $this->description ?: null,
             ]);
@@ -69,6 +77,7 @@ class JobList extends Component
         } else {
             $job = Job::create([
                 'title' => $this->title,
+                'company' => $this->company,
                 'position_id' => $this->position_id,
                 'description' => $this->description ?: null,
                 'created_by' => auth()->id(),
@@ -110,12 +119,14 @@ class JobList extends Component
                 'candidates as discarded_count' => fn ($q) => $q->where('status', 'discarded'),
             ])
             ->when($this->positionFilter, fn ($q) => $q->where('position_id', $this->positionFilter))
+            ->when($this->companyFilter, fn ($q) => $q->where('company', $this->companyFilter))
             ->latest()
             ->get();
 
         return view('livewire.hr.job-list', [
             'jobs' => $jobs,
             'positions' => Position::active()->orderBy('name')->get(),
+            'companies' => config('companies'),
         ])->layout('layouts.app', ['title' => 'Vagas']);
     }
 }

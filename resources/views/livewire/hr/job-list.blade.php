@@ -13,24 +13,31 @@
     </button>
   </div>
 
-  {{-- Filtro por cargo --}}
-  @if($positions->isNotEmpty())
-    <div class="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex flex-wrap gap-3 items-center">
+  {{-- Filtros --}}
+  <div class="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex flex-wrap gap-3 items-center">
+    @if($positions->isNotEmpty())
       <select wire:model.live="positionFilter"
-              class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+              class="h-10 text-sm border border-slate-200 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
         <option value="">Todos os cargos</option>
         @foreach($positions as $pos)
           <option value="{{ $pos->id }}">{{ $pos->name }}</option>
         @endforeach
       </select>
-      @if($positionFilter)
-        <button wire:click="$set('positionFilter', '')"
-                class="text-sm text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg px-3 py-2 transition-colors duration-150 ease-out">
-          Limpar filtro
-        </button>
-      @endif
-    </div>
-  @endif
+    @endif
+    <select wire:model.live="companyFilter"
+            class="h-10 text-sm border border-slate-200 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+      <option value="">Todas as empresas</option>
+      @foreach($companies as $key => $label)
+        <option value="{{ $key }}">{{ $label }}</option>
+      @endforeach
+    </select>
+    @if($positionFilter || $companyFilter)
+      <button wire:click="$set('positionFilter', ''); $set('companyFilter', '')"
+              class="text-sm text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg px-3 py-2 transition-colors duration-150 ease-out">
+        Limpar filtros
+      </button>
+    @endif
+  </div>
 
   <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
     @if($jobs->isEmpty())
@@ -66,6 +73,9 @@
                   {{ $job->title }}
                 </a>
                 <p class="text-xs text-slate-400 mt-0.5">{{ $job->position?->name ?? '—' }}</p>
+                @if($job->company)
+                  <x-status-badge color="blue">{{ $companies[$job->company] ?? $job->company }}</x-status-badge>
+                @endif
               </td>
               <td class="px-4 py-3 text-center">
                 <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold">
@@ -135,8 +145,19 @@
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1.5">Título *</label>
             <input type="text" wire:model="title" placeholder="Ex: Desenvolvedor Full Stack"
-                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                   class="h-10 w-full border border-slate-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
             @error('title') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1.5">Empresa *</label>
+            <select wire:model="company"
+                    class="h-10 w-full border border-slate-200 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+              <option value="">Selecione a empresa</option>
+              @foreach($companies as $key => $label)
+                <option value="{{ $key }}">{{ $label }}</option>
+              @endforeach
+            </select>
+            @error('company') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1.5">Cargo *</label>
