@@ -399,214 +399,267 @@ Garantir que o texto "Todas as empresas" caiba em uma única linha sem truncar.
 
 ---
 
-## 16. Layout da Intranet — Sidebar e Dashboard em Tailwind
-
-Reescrever o layout principal da aplicação com identidade de Intranet corporativa.
-Usar Tailwind CSS puro com Blade Components. Sem frameworks externos.
-
-### 16a. Atualizar layout principal (app.blade.php)
-
-Reescrever `resources/views/layouts/app.blade.php` com:
-- Sidebar fixo à esquerda (`w-64`), colapsável para `w-16` com Alpine.js
-- Fundo do sidebar: `bg-slate-900`
-- Topbar: `bg-white`, `border-b border-slate-200`, altura `h-16`
-- Área de conteúdo: `bg-slate-50`, padding `p-6`
-- Fonte: Inter ou Plus Jakarta Sans via Google Fonts
-- Flash messages com auto-dismiss via Alpine.js
-- Responsivo: sidebar vira drawer no mobile
-
-### 16b. Criar Blade Component: sidebar
-
-Criar `resources/views/components/sidebar.blade.php`:
-- Logo da empresa no topo
-- Itens de menu com ícones SVG Heroicons
-- Itens visíveis por permissão usando `@can`
-- Seção "Administração" separada visível apenas para admin/manager
-- Footer com nome, e-mail do usuário e botão de sair
-- Estado ativo destacado: `bg-indigo-600 text-white`
-- Estado hover: `hover:bg-slate-800`
-
-### 16c. Criar Blade Component: topbar
-
-Criar `resources/views/components/topbar.blade.php`:
-- Título da página atual
-- Busca rápida (campo com Alpine.js)
-- Ícone de notificações com badge
-- Avatar com dropdown: perfil e sair
-
-### 16d. Criar Blade Component: stats-card
-
-Criar `resources/views/components/stats-card.blade.php` com props:
-- `label`, `value`, `icon` (SVG), `color` (indigo/emerald/amber/sky), `trend`
-
-### 16e. Atualizar Dashboard
-
-Atualizar `resources/views/livewire/dashboard.blade.php`:
-- Usar novos Blade Components (stats-card)
-- Cards de stats visíveis por `@can`
-- Tabela de despesas recentes com badges de status Tailwind
-- Seção de acesso rápido com botões por permissão
-- Usar apenas classes Tailwind — sem classes customizadas externas
-
-Após cada subtarefa: `docker-compose exec php php artisan view:clear`
-
 ---
 
-## 17. Fundação da Intranet — Spatie, Departamentos e Auditoria
+## 16. Instalação e Configuração do Filament v3
 
-### 17a. Instalar Spatie Laravel Permission
+### 16a. Instalar Filament v3
+
+```bash
+docker-compose exec php composer require filament/filament:"^3.0" -W
+docker-compose exec php php artisan filament:install --panels
+```
+
+Quando perguntar o ID do painel, digitar: `admin`
+
+### 16b. Criar painel do colaborador
+
+```bash
+docker-compose exec php php artisan make:filament-panel app
+```
+
+Configurar `app/Providers/Filament/AppPanelProvider.php`:
+- path: `app`
+- login route própria
+- middleware auth
+
+### 16c. Instalar Spatie Laravel Permission
 
 ```bash
 docker-compose exec php composer require spatie/laravel-permission
 docker-compose exec php php artisan vendor:publish --provider="Spatie\Permission\PermissionRegistrar" --tag="permission-migrations"
-docker-compose exec php php artisan vendor:publish --provider="Spatie\Permission\PermissionRegistrar" --tag="permission-config"
 docker-compose exec php php artisan migrate
 ```
 
-Adicionar `use Spatie\Permission\Traits\HasRoles;` e `use HasRoles;` no model `User`.
+Adicionar `HasRoles` ao model `User`.
 
-### 17b. Migration: adicionar campos à tabela users
+### 16d. Instalar plugin Shield (Filament + Spatie)
 
-Nova migration com:
-- `department_id` (foreignId nullable, constrained departments, nullOnDelete)
-- `position` (string nullable) — cargo
-- `phone` (string 20 nullable)
-- `avatar` (string nullable)
-- `is_active` (boolean default true)
-- `last_login_at` (timestamp nullable)
+```bash
+docker-compose exec php composer require bezhansalleh/filament-shield
+docker-compose exec php php artisan filament:shield:setup --fresh
+docker-compose exec php php artisan shield:generate --all
+```
 
-Rodar após criar.
+### 16e. Criar RolesAndPermissionsSeeder
 
-### 17c. Migration: departments
+Criar `database/seeders/RolesAndPermissionsSeeder.php` com perfis:
+- `admin` → todas as permissões
+- `manager` → aprovar despesas, ver relatórios, ver clientes
+- `support` → ver clientes
+- `financial` → despesas, relatórios, aprovações
+- `employee` → criar/ver próprias despesas e relatórios
 
-Campos: `id`, `name`, `slug` (unique), `description` (nullable), `color` (string 7, default '#6366f1'), `is_active` (boolean default true), `timestamps`.
+Usuário padrão: `admin@intranet.com` / `password` com role `admin`.
 
-### 17d. Migration: audit_logs
+```bash
+docker-compose exec php php artisan db:seed --class=RolesAndPermissionsSeeder
+```
 
-Campos: `id`, `user_id` (foreignId nullable nullOnDelete), `action`, `description` (nullable), `entity_type` (nullable), `entity_id` (nullable), `old_values` (json nullable), `new_values` (json nullable), `ip_address` (string 45), `user_agent` (nullable), `url` (nullable), `method` (string 10 nullable), `created_at` (timestamp useCurrent) — sem `updated_at`.
-Índices em: user_id, [entity_type, entity_id], action, created_at.
+### 16f. Configurar acesso por painel
 
-### 17e. Criar Models
+Em `AdminPanelProvider`: acesso para roles `admin`, `manager`, `support`, `financial`.
+Em `AppPanelProvider`: acesso para role `employee`.
 
-**app/Models/Department.php** — fillable, cast is_active como boolean, hasMany users.
-
-**app/Models/AuditLog.php** — `$timestamps = false`, cast old/new_values como array, belongsTo user withTrashed.
-
-**app/Models/Saas/Client.php** — `$connection = 'saas'`, `$table = 'clients'`, `$timestamps = false`, boot() com `RuntimeException` em creating/updating/deleting.
-
-### 17f. RolesAndPermissionsSeeder
-
-Criar `database/seeders/RolesAndPermissionsSeeder.php`.
-
-Permissões: `clients.view`, `clients.export`, `expenses.view`, `expenses.create`, `expenses.edit`, `expenses.delete`, `expenses.approve`, `expenses.admin`, `users.view`, `users.create`, `users.edit`, `users.delete`, `reports.view`, `reports.export`, `announcements.view`, `announcements.create`.
-
-Perfis:
-- `admin` → todas
-- `manager` → clients.view, expenses.view, expenses.approve, reports.view, reports.export, announcements.view
-- `support` → clients.view, announcements.view
-- `financial` → expenses.view, expenses.approve, expenses.admin, reports.view, reports.export, announcements.view
-- `employee` → expenses.view, expenses.create, expenses.edit, announcements.view
-
-Criar usuário admin: `admin@intranet.com` / `password`, assignRole('admin').
-Rodar: `docker-compose exec php php artisan db:seed --class=RolesAndPermissionsSeeder`
-
-### 17g. AuditService
-
-Criar `app/Services/AuditService.php` com método estático `log(action, description, entityType, entityId, oldValues, newValues)`.
-Captura automaticamente: user_id, ip, user_agent, url, method do request atual.
-
-### 17h. Estrutura de rotas modular
-
-Criar `routes/modules/` com `admin.php`, `clients.php`, `expenses.php`.
-Atualizar `routes/web.php` com require dos três arquivos.
-
-### 17i. Verificação final
+### 16g. Verificação
 
 ```bash
 docker-compose exec php php artisan optimize:clear
-docker-compose exec php php artisan permission:cache-reset
-docker-compose exec php php artisan test
+docker-compose exec php php artisan filament:cache-components
 ```
+
+Acessar `/admin` com `admin@intranet.com` e confirmar que o painel abre sem erros.
 
 ---
 
-## 18. Conexão Read-Only ao Banco SaaS
+## 17. Migrar Módulo de Despesas para Filament
 
-### 18a. Adicionar conexão 'saas' em config/database.php
+### 17a. Resource de Categorias (painel admin)
+
+```bash
+docker-compose exec php php artisan make:filament-resource Category --generate --panel=admin
+```
+
+Campos: nome, cor (ColorPicker), ativo (Toggle).
+Apenas admin e financial têm acesso.
+
+### 17b. Resource de Despesas (painel admin)
+
+```bash
+docker-compose exec php php artisan make:filament-resource Expense --generate --panel=admin
+```
+
+Tabela: colaborador, categoria, data, valor, status (badge colorido), recibo.
+Filtros: status, categoria, período, colaborador.
+Actions: aprovar, rejeitar, ver recibo.
+
+### 17c. Resource de Relatórios (painel admin)
+
+```bash
+docker-compose exec php php artisan make:filament-resource Report --generate --panel=admin
+```
+
+Tabela: protocolo, colaborador, total, status (badge), data de entrega.
+Actions: confirmar pagamento, reprovar, baixar PDF.
+
+### 17d. Resource de Despesas (painel colaborador)
+
+```bash
+docker-compose exec php php artisan make:filament-resource Expense --generate --panel=app
+```
+
+Apenas despesas do usuário logado (`->where('user_id', auth()->id())`).
+Actions: criar, editar (se disponível), anexar ao relatório.
+
+### 17e. Resource de Relatórios (painel colaborador)
+
+```bash
+docker-compose exec php php artisan make:filament-resource Report --generate --panel=app
+```
+
+Apenas relatórios do usuário logado.
+Actions: criar, entregar, ver PDF.
+
+### 17f. Dashboard Admin com widgets
+
+Criar widgets em `app/Filament/Admin/Widgets/`:
+- `StatsOverviewWidget`: total despesas pendentes, relatórios aguardando, total do mês
+- `ExpensesByMonthChart`: gráfico de despesas por mês (ApexCharts)
+
+### 17g. Dashboard Colaborador com widgets
+
+Criar widgets em `app/Filament/App/Widgets/`:
+- `MyStatsWidget`: minhas despesas disponíveis, relatórios em aberto
+- `RecentExpensesWidget`: tabela das últimas 5 despesas
+
+### 17h. Verificação
+
+Logar como admin → confirmar que vê todos os relatórios e pode pagar.
+Logar como employee → confirmar que vê apenas os próprios dados.
+Testar fluxo completo: criar despesa → criar relatório → entregar → pagar.
+
+---
+
+## 18. Migrar Módulo de Recrutamento para Filament
+
+### 18a. Resource de Vagas (painel admin)
+
+```bash
+docker-compose exec php php artisan make:filament-resource Job --generate --panel=admin
+```
+
+Campos: título, empresa, cargo, descrição (RichEditor), status, link público.
+Apenas admin e hr têm acesso.
+
+### 18b. Resource de Candidatos (painel admin)
+
+```bash
+docker-compose exec php php artisan make:filament-resource Candidate --generate --panel=admin
+```
+
+Tabela: nome, CPF, vaga, status, data de candidatura.
+Actions: avançar etapa, reprovar, ver currículo.
+
+### 18c. Página pública de candidatura
+
+Manter ou recriar a página pública `/vagas/{slug}` como rota fora do Filament.
+Formulário de candidatura sem autenticação.
+
+---
+
+## 19. Gestão de Usuários e Departamentos
+
+### 19a. Migration: departments e campos em users
+
+Criar migrations para:
+- Tabela `departments`: id, name, slug, color, is_active, timestamps
+- Adicionar em `users`: department_id, position, phone, avatar, is_active, last_login_at
+
+Rodar: `docker-compose exec php php artisan migrate`
+
+### 19b. Resource de Usuários (painel admin)
+
+```bash
+docker-compose exec php php artisan make:filament-resource User --generate --panel=admin
+```
+
+Campos: nome, email, departamento (Select), cargo, perfil (Select roles Spatie).
+Apenas admin tem acesso.
+
+### 19c. Resource de Departamentos (painel admin)
+
+```bash
+docker-compose exec php php artisan make:filament-resource Department --generate --panel=admin
+```
+
+### 19d. Página de Perfil (painel colaborador)
+
+```bash
+docker-compose exec php php artisan make:filament-page Profile --panel=app
+```
+
+Campos editáveis: nome, telefone, avatar, senha.
+
+---
+
+## 20. Conexão SaaS DB e Módulo de Clientes
+
+### 20a. Adicionar conexão 'saas' em config/database.php
 
 ```php
 'saas' => [
     'driver'    => 'mysql',
-    'host'      => env('SAAS_DB_HOST', '127.0.0.1'),
+    'host'      => env('SAAS_DB_HOST'),
     'port'      => env('SAAS_DB_PORT', '3306'),
     'database'  => env('SAAS_DB_DATABASE'),
     'username'  => env('SAAS_DB_USERNAME'),
     'password'  => env('SAAS_DB_PASSWORD'),
     'charset'   => 'utf8mb4',
     'collation' => 'utf8mb4_unicode_ci',
-    'prefix'    => '',
     'strict'    => true,
 ],
 ```
 
-### 18b. Adicionar ao .env.example (sem valores)
+### 20b. Model Saas/Client (read-only)
 
-```
-SAAS_DB_HOST=
-SAAS_DB_PORT=3306
-SAAS_DB_DATABASE=
-SAAS_DB_USERNAME=
-SAAS_DB_PASSWORD=
-BITRIX_URL=
-BITRIX_TOKEN=
-```
+Criar `app/Models/Saas/Client.php`:
+- `$connection = 'saas'`
+- `$table = 'clients'` (ajustar para nome real)
+- `$timestamps = false`
+- `boot()` com RuntimeException em creating/updating/deleting
 
-### 18c. Testar conexão
+### 20c. AuditService
+
+Criar `app/Services/AuditService.php` com método estático `log()`.
+Captura: user_id, action, entity_type, entity_id, ip, user_agent.
+
+### 20d. Migration: audit_logs
+
+Campos: id, user_id, action, description, entity_type, entity_id,
+old_values (json), new_values (json), ip_address, user_agent, url, method, created_at.
+Sem updated_at. Índices em user_id, [entity_type, entity_id], action, created_at.
+
+### 20e. Resource de Clientes (painel admin — somente leitura)
 
 ```bash
-docker-compose exec php php artisan tinker --execute="try { DB::connection('saas')->getPdo(); echo 'OK'; } catch(\Exception \$e) { echo \$e->getMessage(); }"
+docker-compose exec php php artisan make:filament-resource Client --generate --panel=admin
 ```
 
----
-
-## 19. Módulo de Clientes — Consulta com Auditoria
-
-Implementar tela de consulta de clientes da base SaaS com log de auditoria obrigatório.
-
-### 19a. ClientController
-
-Criar `app/Http/Controllers/Clients/ClientController.php`:
-- `index()` — listagem com busca por nome/e-mail/CNPJ
-- `show($id)` — detalhes do cliente
-- Ambos com `$this->authorize('clients.view')` e `AuditService::log()`
-
-### 19b. Views de clientes
-
-Criar `resources/views/clients/index.blade.php` e `show.blade.php`:
-- Usar layout e design system Tailwind definidos na task 16
-- Tabela com paginação, campo de busca
-- Badges de status do cliente
-- Sem botões de edição/exclusão (somente leitura)
-
-### 19c. Verificação
-
-Logar como usuário com `clients.view`, acessar `/clients` e confirmar que:
-- Dados aparecem corretamente
-- Audit log registra o acesso
-- Usuário sem permissão recebe 403
+Somente leitura — desabilitar CreateAction, EditAction, DeleteAction.
+Busca por nome, e-mail, CNPJ.
+Registrar `AuditService::log('client.viewed')` no método `view()`.
+Apenas roles `admin`, `manager`, `support` têm acesso.
 
 ---
 
 ## Instruções gerais para o Claude Code
 
-- Sempre usar `docker-compose exec php` para rodar comandos no container
-- Nunca editar migrations já existentes — sempre criar nova migration
-- Sempre limpar cache após alterações em views: `php artisan view:clear`
-- Sempre rodar migrations após alterações no banco: `php artisan migrate`
-- Usar apenas Tailwind CSS — sem frameworks externos de UI
-- Ícones: SVG inline do Heroicons (heroicons.com) — tamanhos `w-4 h-4` ou `w-5 h-5`
-- Sempre verificar permissões com @can nas views e authorize() nos controllers
-- Registrar AuditService::log() em todo acesso a dados de clientes
-- Commitar cada tarefa separadamente com mensagem descritiva em português
-- Testar o fluxo completo antes de passar para a próxima tarefa
+- Sempre usar `docker-compose exec php` para rodar comandos Laravel
+- Nunca editar migrations existentes — sempre criar nova migration
+- Sempre rodar `php artisan optimize:clear` após mudanças
+- Sempre rodar `php artisan filament:cache-components` após criar/editar Resources
+- Registrar `AuditService::log()` em todo acesso a dados de clientes
+- Nunca hardcodar roles — sempre verificar via Spatie (`$user->hasRole()` ou `@can`)
+- Commitar cada tarefa separadamente com mensagem em português
 - Rodar `php artisan test` antes de qualquer commit
+- Testar fluxo completo no browser antes de avançar para próxima tarefa
