@@ -16,9 +16,9 @@
   {{-- Sidebar --}}
   <aside class="w-60 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 left-0 z-30">
 
-    <div class="px-6 py-5 border-b border-slate-100">
+    <div class="px-6 py-4 border-b border-slate-100">
       <a href="{{ route('dashboard') }}">
-        <img src="{{ asset('images/logo.png') }}" alt="Veloce Tech" class="h-8 w-auto">
+        <img src="{{ asset('images/logo.png') }}" alt="Veloce Tech" class="h-24 w-auto">
       </a>
     </div>
 
