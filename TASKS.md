@@ -376,6 +376,25 @@ Na exibição da vaga (página pública e tela de detalhe do RH):
 - Garantir que o Tailwind Typography (@tailwindcss/typography) esteja instalado ou usar estilos manuais equivalentes para h2, h3, ul, ol, strong, em
 
 ---
+
+## 14. Correções visuais urgentes
+
+### 14a. Logo não aparece no header
+
+O logo está exibindo como texto "Veloce Tech" em vez da imagem.
+Localizar o layout principal (resources/views/layouts/app.blade.php ou similar) e corrigir a tag img do logo.
+Verificar se o arquivo existe em public/images/logo.png.
+Se necessário, rodar `php artisan storage:link` e ajustar o path.
+A tag correta deve ser:
+`<img src="{{ asset('images/logo.png') }}" alt="Veloce Tech" class="h-8 w-auto">`
+
+### 14b. Select "Todas as empresas" muito pequeno
+
+Na tela de listagem de vagas (Recrutamento), o select de filtro por empresa está com largura insuficiente.
+Aumentar a largura mínima do select para min-w-48 ou w-56.
+Garantir que o texto "Todas as empresas" caiba em uma única linha sem truncar.
+
+---
 ## Instruções gerais para o Claude Code
 
 - Ler o UI_STYLE_GUIDE.md antes de qualquer alteração visual
