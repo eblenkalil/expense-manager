@@ -242,6 +242,26 @@ Na tela de listagem de candidatos por vaga (tarefa 10d), adicionar botão "Expor
 
 ---
 
+
+## 11. Logo da empresa no cabeçalho e no PDF
+
+O logo da Veloce Tech foi adicionado ao repositório em `public/images/logo.png` (PNG com fundo transparente).
+
+### Cabeçalho das páginas:
+- Localizar o layout principal da aplicação (provavelmente resources/views/layouts/app.blade.php ou similar)
+- Substituir o ícone/logo atual do Laravel pelo logo da empresa
+- Usar a tag: `<img src="{{ asset('images/logo.png') }}" alt="Veloce Tech" class="h-8 w-auto">`
+- Manter o logo no lado esquerdo do header, discreto, com altura h-8
+- O logo deve ser clicável e redirecionar para o dashboard
+
+### PDF do relatório de despesas:
+- Localizar o template Blade usado para gerar o PDF (provavelmente resources/views/reports/pdf.blade.php ou similar)
+- Adicionar o logo no canto superior esquerdo do cabeçalho do PDF
+- Usar caminho absoluto para o dompdf encontrar o arquivo: `storage_path()` ou `public_path('images/logo.png')`
+- Tamanho recomendado no PDF: largura máxima de 120px, altura automática
+- O logo deve aparecer em todas as páginas do PDF se o relatório tiver múltiplas páginas
+
+---
 ## Instruções gerais para o Claude Code
 
 - Ler o UI_STYLE_GUIDE.md antes de qualquer alteração visual
