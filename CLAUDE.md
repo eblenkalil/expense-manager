@@ -6,8 +6,7 @@
 
 ## 📌 Visão Geral
 
-Este projeto está evoluindo de um **sistema de gestão de despesas** para uma **Intranet corporativa completa** para uma empresa de tecnologia com 40 colaboradores.
-O expense-manager original é um **módulo** dentro da Intranet.
+Sistema evoluindo de um **gestor de despesas** para uma **Intranet corporativa completa** para empresa de tecnologia com 40 colaboradores.
 
 Repositório: https://github.com/eblenkalil/expense-manager
 
@@ -18,9 +17,9 @@ Repositório: https://github.com/eblenkalil/expense-manager
 | Camada | Tecnologia |
 |--------|-----------|
 | Framework | Laravel 11 |
-| Frontend reativo | Livewire 3 |
-| Estilo | **Tailwind CSS via Vite** |
-| Componentes | **Blade Components customizados** |
+| Admin + CRUD | **Filament v3** |
+| Frontend reativo | Livewire 3 (base do Filament) |
+| Estilo | **Tailwind CSS** (via Filament + Vite) |
 | Autenticação | Laravel Breeze + **Spatie Laravel Permission** |
 | PDF | barryvdh/laravel-dompdf |
 | E-mail | Laravel Mail + Queue (driver: database) |
@@ -31,243 +30,159 @@ Repositório: https://github.com/eblenkalil/expense-manager
 
 ---
 
-## 🎨 Design System — Tailwind
+## 🎯 Arquitetura Filament — Dois Painéis
 
-Fonte principal: **Inter** (Google Fonts) ou **Plus Jakarta Sans**.
-Paleta base: `slate` para neutros, `indigo-600` como cor primária.
-
-### Componentes padrão
-
-**Botões:**
-```html
-<!-- Primário -->
-<button class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors">Ação</button>
-
-<!-- Secundário -->
-<button class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl border border-slate-200 transition-colors">Cancelar</button>
-
-<!-- Destrutivo -->
-<button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition-colors">Excluir</button>
 ```
+/admin      → AdminPanelProvider
+              Gestores e administradores
+              ├── Dashboard com widgets
+              ├── Usuários e departamentos
+              ├── Permissões (Spatie)
+              ├── Aprovação de despesas
+              ├── Todos os relatórios
+              ├── Clientes (SaaS DB — somente leitura)
+              ├── Categorias de despesa
+              └── Recrutamento
 
-**Cards:**
-```html
-<div class="bg-white rounded-2xl border border-slate-200">
-    <div class="px-6 py-4 border-b border-slate-100">
-        <h3 class="font-semibold text-slate-800">Título</h3>
-    </div>
-    <div class="p-6">conteúdo</div>
-</div>
+/app        → AppPanelProvider
+              Colaboradores
+              ├── Dashboard pessoal
+              ├── Minhas despesas
+              ├── Meus relatórios
+              └── Meu perfil
 ```
-
-**Badges de status:**
-```html
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">Pendente</span>
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">Aprovado</span>
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">Reprovado</span>
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700">Pago</span>
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">Rascunho</span>
-```
-
-**Inputs:**
-```html
-<input class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors">
-```
-
-**Ícones:** SVG inline do Heroicons (https://heroicons.com) — sempre `w-4 h-4` ou `w-5 h-5`.
-
-### Regras visuais
-- Bordas: sempre `rounded-xl` (12px) ou `rounded-2xl` (16px)
-- Sombras: evitar — usar bordas `border-slate-200`
-- Fundo da página: `bg-slate-50`
-- Cards e painéis: `bg-white`
-- Tipografia de destaque: `font-semibold text-slate-800`
-- Tipografia secundária: `text-sm text-slate-500`
 
 ---
 
-## 👥 Perfis de usuário
+## ⚙️ Padrões Filament
 
-Controle via **Spatie Laravel Permission** (roles + permissions):
+### Resources
+- Cada entidade = um Resource em `app/Filament/`
+- Admin resources em `app/Filament/Admin/Resources/`
+- App resources em `app/Filament/App/Resources/`
 
-| Perfil | Descrição |
-|--------|-----------|
-| `admin` | Acesso total |
-| `manager` | Gestor de área — aprovações, relatórios |
-| `support` | Atendimento — consulta de clientes |
-| `financial` | Financeiro — despesas, relatórios |
-| `employee` | Colaborador comum |
+### Permissões
+- Usar `shield` (plugin Filament para Spatie) para controle por Resource
+- Método `canAccess()` nos panels para separar admin de colaborador
+- Nunca hardcodar `role` — sempre via Spatie
 
-> O campo `role` na tabela `users` (sistema antigo) será migrado para Spatie.
+### Convenções
+- Sempre usar `Tables\Columns`, `Forms\Components` nativos do Filament
+- Widgets de dashboard em `app/Filament/*/Widgets/`
+- Custom pages em `app/Filament/*/Pages/`
+- Actions em linha na tabela quando possível
+
+### Auditoria
+- `AuditService::log()` em todo acesso a dados de clientes
+- Registrar em `audit_logs` via observer ou action do Filament
+
+---
+
+## 👥 Perfis (Spatie)
+
+| Perfil | Painel | Descrição |
+|--------|--------|-----------|
+| `admin` | /admin | Acesso total |
+| `manager` | /admin | Gestor — aprovações e relatórios |
+| `support` | /admin | Atendimento — consulta de clientes |
+| `financial` | /admin | Financeiro — despesas e relatórios |
+| `employee` | /app | Colaborador comum |
 
 ---
 
 ## 🔄 Módulos
 
-### ✅ Já existe no projeto
-- **Expenses** — despesas, relatórios, reembolsos (Livewire)
-- **Recruitment** — vagas, candidatos, entrevistas (Livewire)
-- **Multi-perfil** — admin, manager, hr, collaborator (campo `role` legado)
+### ✅ Já existe (migrar para Filament)
+- Expenses — despesas e relatórios
+- Recruitment — vagas, candidatos, entrevistas
+- Multi-perfil — campo `role` legado
 
 ### 🔄 Em desenvolvimento
-- **Core** — Spatie permissions, departments, audit_logs
-- **Clients** — consulta de clientes (SaaS DB + Bitrix24 CRM)
-- **Layout Intranet** — sidebar, dashboard, navegação por módulo
+- Core Filament — dois painéis + Spatie
+- Clients — consulta SaaS DB com auditoria
 
-### 📋 Planejados (futuro)
-- Communications, Documents, Calendar, App Flutter
+### 📋 Futuro
+- CRM próprio
+- Comunicados, Documentos, Calendário
+- App Flutter mobile
 
 ---
 
-## 🗄️ Banco de dados
+## 🗄️ Banco de Dados
 
-### Banco principal — `intranet_db`
+### `intranet_db` (principal)
 ```
-users             id, name, email, password, department_id, position, phone,
-                  avatar, is_active, last_login_at, role (legado → Spatie)
-departments       id, name, slug, color, is_active
-audit_logs        id, user_id, action, entity_type, entity_id,
-                  old_values, new_values, ip_address, created_at
-categories        id, name, active
-expenses          id, user_id, category_id, expense_date, value, description,
-                  receipt_path, status
-reports           id, user_id, protocol_number, title, total_value, status...
-report_expenses   pivot report_id + expense_id
-jobs              fila de e-mails
+users, departments, audit_logs
+categories, expenses, reports, report_expenses
+jobs (fila), sessions, cache
++ tabelas Spatie (roles, permissions, model_has_roles...)
 ```
 
-### Banco SaaS — `saas_db` (somente leitura)
+### `saas_db` (somente leitura)
 - Conexão `saas` no `config/database.php`
-- Models em `App\Models\Saas\*` com `$connection = 'saas'`
-- Boot bloqueia create/update/delete automaticamente
-- Todo acesso registrado via `AuditService::log()`
+- Models em `App\Models\Saas\*`
+- `$connection = 'saas'` + boot() bloqueia writes
+- Todo acesso via `AuditService::log()`
 
 ---
 
 ## 🔗 Integrações
-
-- **Bitrix24 CRM** — via REST API (`BITRIX_URL`, `BITRIX_TOKEN`)
-- **SaaS próprio** — read-only via conexão `saas` no RDS
-- **Microsoft 365** — planejado, escopo a definir
-
----
-
-## 📂 Estrutura de arquivos importantes
-
-```
-app/
-  Livewire/
-    Dashboard.php
-    Expenses/ExpenseList.php
-    Reports/ReportList.php, CreateReport.php, ReportDetail.php
-    Admin/AdminIndex.php, AdminReports.php, AdminUsers.php, AdminCategories.php
-    Recruitment/         ← módulo de recrutamento
-    Profile/ProfileSettings.php
-  Models/
-    User.php             ← adicionar HasRoles (Spatie)
-    Department.php       ← novo
-    AuditLog.php         ← novo
-    Saas/Client.php      ← novo, read-only, connection='saas'
-  Services/
-    AuditService.php     ← novo — log de acessos sensíveis
-    ProtocolService.php  ← já existe — gera REL-YYYY-XXXX
-    BitrixService.php    ← novo — integração Bitrix24 CRM
-  Http/Middleware/
-    AdminMiddleware.php  ← já existe (migrar para Spatie gradualmente)
-
-resources/views/
-  layouts/app.blade.php  ← layout principal com sidebar Tailwind
-  components/            ← Blade components reutilizáveis
-  livewire/              ← views dos componentes Livewire
-  reports/pdf.blade.php  ← template PDF
-
-routes/
-  web.php
-  modules/               ← novo — rotas por módulo
-    expenses.php
-    clients.php
-    admin.php
-```
+- **Bitrix24** — REST API (`BITRIX_URL`, `BITRIX_TOKEN`) — futuro
+- **SaaS próprio** — read-only via conexão `saas`
+- **Microsoft 365** — planejado
 
 ---
 
-## ⚙️ Padrões de código
+## 🐳 Docker — Comandos do dia a dia
 
-- **Lógica fica nos Livewire components**, não em controllers
-- **Validação:** atributo `#[Validate]` nos components Livewire
-- **E-mails:** sempre `Mail::to()->queue()`, nunca `send()`
-- **Uploads:** `Storage::disk('public')`
-- **Permissões:** `@can` nas views, `$this->authorize()` nos controllers
-- **Auditoria:** `AuditService::log()` em todo acesso a dados de clientes
-- **Commits:** português, formato `tipo: descrição` (feat/fix/refactor/style/docs)
-- **Formatação:** `./vendor/bin/pint` após qualquer alteração PHP
-- **Assets:** `npm run build` após alterar CSS/JS
-- **Migrations:** sempre criar nova migration, nunca editar existente
-
----
-
-## 🐳 Infraestrutura — Docker no Amazon Linux
-
-| Item | Detalhe |
-|------|---------|
-| Servidor | Amazon Linux (EC2) |
-| Docker Compose | Versão antiga — usar `docker-compose` (com hífen) |
-| Containers | expense-mysql, expense-nginx, expense-php, expense-queue |
-| Node/npm | Disponível no container php |
-
-### Comandos do dia a dia
 ```bash
-# Aplicação
-docker-compose exec php php artisan serve
-docker-compose exec php npm run dev
-docker-compose exec php npm run build
+# Filament
+docker-compose exec php php artisan make:filament-resource NomeResource --generate
+docker-compose exec php php artisan make:filament-page NomePage
+docker-compose exec php php artisan make:filament-widget NomeWidget
 
 # Banco
 docker-compose exec php php artisan migrate
-docker-compose exec php php artisan db:seed
+docker-compose exec php php artisan db:seed --class=RolesAndPermissionsSeeder
 
-# Cache (sempre rodar após mudanças)
+# Cache
 docker-compose exec php php artisan optimize:clear
-docker-compose exec php php artisan view:clear
+docker-compose exec php php artisan filament:cache-components
 docker-compose exec php php artisan permission:cache-reset
 
-# Logs
-docker-compose logs -f php
-docker-compose exec php tail -f storage/logs/laravel.log
+# Assets
+docker-compose exec php php artisan filament:upgrade
+docker-compose exec php npm run build
 
 # Testes
 docker-compose exec php php artisan test
 
-# Qualidade
-docker-compose exec php ./vendor/bin/pint
+# Logs
+docker-compose logs -f php
 ```
 
 ---
 
-## 🌐 Variáveis de ambiente
+## 🌐 Variáveis de Ambiente
 
 ```env
 APP_NAME="Intranet Corporativa"
 APP_URL=https://seudominio.com
 
-# Banco principal
 DB_CONNECTION=mysql
 DB_HOST=seu-rds.rds.amazonaws.com
 DB_DATABASE=intranet_db
 DB_USERNAME=intranet_user
 DB_PASSWORD=
 
-# Banco SaaS (somente leitura)
 SAAS_DB_HOST=seu-rds.rds.amazonaws.com
 SAAS_DB_DATABASE=saas_db
 SAAS_DB_USERNAME=saas_readonly_user
 SAAS_DB_PASSWORD=
 
-# Bitrix24
 BITRIX_URL=https://suaempresa.bitrix24.com.br/rest
 BITRIX_TOKEN=
 
-# Obrigatórias (Docker)
 SESSION_DRIVER=file
 CACHE_STORE=file
 QUEUE_CONNECTION=database
@@ -276,12 +191,11 @@ FILESYSTEM_DISK=public
 
 ---
 
-## ✅ Checklist antes de qualquer PR
+## ✅ Checklist antes de qualquer commit
 
 - [ ] `php artisan test` passando
 - [ ] `./vendor/bin/pint` rodado
-- [ ] Nenhum `dd()`, `dump()` no código
+- [ ] Nenhum `dd()` ou `dump()` no código
 - [ ] Migration criada se houve mudança no banco
-- [ ] `npm run build` rodado se houve mudança em CSS/JS
-- [ ] `php artisan view:clear` rodado
-- [ ] Commit com mensagem no padrão correto
+- [ ] `php artisan filament:cache-components` rodado
+- [ ] Commit com mensagem em português no padrão `tipo: descrição`
