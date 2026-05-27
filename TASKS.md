@@ -321,6 +321,61 @@ Ordem dos campos:
 - Sem scroll horizontal
 
 
+
+## 13. Vagas — seletor de empresa e rich text na descrição
+
+### 13a. Seletor de empresa nas vagas
+
+As empresas são fixas e devem ser definidas em config, não em banco de dados.
+
+Criar arquivo `config/companies.php`:
+```php
+return [
+    'tri_rs'       => 'Tri.RS',
+    'veloce_tech'  => 'Veloce.Tech',
+    'tche_ofertas' => 'TcheOfertas',
+];
+```
+
+Adicionar coluna `company` (string, nullable) na tabela `jobs` via migration.
+
+No formulário de criação e edição de vaga (modal ou tela de RH):
+- Adicionar campo select "Empresa" com as três opções acima
+- Campo obrigatório
+- Seguir estilo do UI_STYLE_GUIDE.md para selects: mesmas classes dos inputs com h-10
+
+Na listagem de vagas (tarefa 10c):
+- Exibir o nome da empresa como badge ou coluna na tabela
+- Adicionar filtro por empresa na listagem
+
+Na página pública de candidatura (tarefa 12):
+- Exibir o nome da empresa na coluna esquerda, abaixo do cargo
+- Usar texto em blue-200 com tamanho text-sm
+
+### 13b. Rich text na descrição da vaga com TipTap
+
+Usar TipTap via CDN (sem npm) integrado com Alpine.js para o campo de descrição da vaga.
+
+Instalação via CDN no layout ou na view específica:
+```html
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/core@2/dist/tiptap-core.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2/dist/tiptap-starter-kit.umd.min.js"></script>
+```
+
+Implementar componente Alpine.js para o editor:
+- Toolbar com botões: Negrito, Itálico, Lista com marcadores, Lista numerada, Título H2, Título H3, Separador horizontal
+- Estilo da toolbar: fundo bg-slate-50, borda border-slate-200, botões com hover:bg-slate-100, botão ativo com bg-blue-50 text-blue-600
+- Área de edição: min-h de 150px, padding p-3, fundo branco, borda border-slate-200 rounded-b-lg
+- O valor HTML do editor deve ser sincronizado com a propriedade Livewire via Alpine `$wire`
+
+Salvar o campo `description` como HTML no banco (TEXT).
+
+Na exibição da vaga (página pública e tela de detalhe do RH):
+- Renderizar o HTML salvo com `{!! $job->description !!}`
+- Adicionar classes de tipografia ao container: `prose prose-sm max-w-none text-slate-700`
+- Garantir que o Tailwind Typography (@tailwindcss/typography) esteja instalado ou usar estilos manuais equivalentes para h2, h3, ul, ol, strong, em
+
+---
 ## Instruções gerais para o Claude Code
 
 - Ler o UI_STYLE_GUIDE.md antes de qualquer alteração visual
