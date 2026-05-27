@@ -25,7 +25,7 @@
       </select>
     @endif
     <select wire:model.live="companyFilter"
-            class="h-10 text-sm border border-slate-200 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+            class="h-10 min-w-48 text-sm border border-slate-200 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
       <option value="">Todas as empresas</option>
       @foreach($companies as $key => $label)
         <option value="{{ $key }}">{{ $label }}</option>
