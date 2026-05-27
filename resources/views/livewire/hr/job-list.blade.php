@@ -172,8 +172,35 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-600 mb-1.5">Descrição</label>
-            <textarea wire:model="description" rows="5" placeholder="Descreva a vaga, requisitos e benefícios..."
-                      class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"></textarea>
+            <div wire:ignore x-data="tiptapEditor()" x-init="init()">
+              {{-- Toolbar --}}
+              <div class="flex flex-wrap gap-1 bg-slate-50 border border-slate-200 rounded-t-lg px-2 py-1.5">
+                <button type="button" @mousedown.prevent="cmd(c => c.toggleBold().run())"
+                        :class="active('bold') ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'"
+                        class="px-2 py-1 rounded text-sm font-bold text-slate-700 transition-colors">B</button>
+                <button type="button" @mousedown.prevent="cmd(c => c.toggleItalic().run())"
+                        :class="active('italic') ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'"
+                        class="px-2 py-1 rounded text-sm italic text-slate-700 transition-colors">I</button>
+                <button type="button" @mousedown.prevent="cmd(c => c.toggleHeading({level:2}).run())"
+                        :class="active('heading',{level:2}) ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'"
+                        class="px-2 py-1 rounded text-xs font-semibold text-slate-700 transition-colors">H2</button>
+                <button type="button" @mousedown.prevent="cmd(c => c.toggleHeading({level:3}).run())"
+                        :class="active('heading',{level:3}) ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'"
+                        class="px-2 py-1 rounded text-xs font-semibold text-slate-700 transition-colors">H3</button>
+                <button type="button" @mousedown.prevent="cmd(c => c.toggleBulletList().run())"
+                        :class="active('bulletList') ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'"
+                        class="px-2 py-1 rounded text-xs text-slate-700 transition-colors">&#8226; Lista</button>
+                <button type="button" @mousedown.prevent="cmd(c => c.toggleOrderedList().run())"
+                        :class="active('orderedList') ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'"
+                        class="px-2 py-1 rounded text-xs text-slate-700 transition-colors">1. Lista</button>
+                <button type="button" @mousedown.prevent="cmd(c => c.setHorizontalRule().run())"
+                        class="px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-100 transition-colors">&#8212;</button>
+              </div>
+              {{-- Editor area --}}
+              <div x-ref="editorEl"
+                   class="min-h-[150px] p-3 bg-white border border-t-0 border-slate-200 rounded-b-lg text-sm text-slate-900 [&_.ProseMirror]:outline-none [&_h2]:text-base [&_h2]:font-semibold [&_h3]:text-sm [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_em]:italic [&_hr]:border-slate-200 [&_hr]:my-2">
+              </div>
+            </div>
             @error('description') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
           </div>
         </div>

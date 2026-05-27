@@ -17,7 +17,7 @@
 
         @if($job->description)
           <div class="border-t border-white/10 my-6 hidden lg:block"></div>
-          <div class="text-white/70 text-sm leading-relaxed hidden lg:block prose prose-sm max-w-none">
+          <div class="text-white/70 text-sm leading-relaxed hidden lg:block [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-white/90 [&_h2]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-white/90 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-0.5 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_em]:italic [&_p]:mb-2">
             {!! $job->description !!}
           </div>
         @endif

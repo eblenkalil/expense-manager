@@ -136,5 +136,34 @@
 
 @livewireScripts
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/core@2/dist/tiptap-core.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2/dist/tiptap-starter-kit.umd.min.js"></script>
+<script>
+function tiptapEditor() {
+    return {
+        editor: null,
+        init() {
+            const TiptapCore = window.TiptapCore || window.tiptapCore;
+            const TiptapStarterKit = window.TiptapStarterKit || window.tiptapStarterKit;
+            if (!TiptapCore || !TiptapStarterKit) return;
+            const self = this;
+            this.editor = new TiptapCore.Editor({
+                element: this.$refs.editorEl,
+                extensions: [TiptapStarterKit.StarterKit],
+                content: this.$wire.description || '',
+                editorProps: {
+                    attributes: { class: 'min-h-[130px] focus:outline-none' }
+                },
+                onUpdate({ editor }) {
+                    self.$wire.set('description', editor.getHTML());
+                },
+            });
+            this.$cleanup(() => { this.editor?.destroy(); });
+        },
+        cmd(fn) { fn(this.editor?.chain().focus()); },
+        active(type, opts) { return this.editor?.isActive(type, opts) ?? false; },
+    };
+}
+</script>
 </body>
 </html>
